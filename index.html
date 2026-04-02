@@ -106,17 +106,52 @@
       display: flex; align-items: flex-start; gap: 8px;
       padding: 0.6rem 0.7rem; border-radius: 9px; margin-bottom: 6px;
       background: var(--surface); border: 1px solid var(--border);
-      cursor: pointer; transition: border-color 0.15s;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      position: relative;
     }
-    .drawer-task-item:hover { border-color: var(--primary); }
+    .drawer-task-item:hover { border-color: var(--primary); box-shadow: 0 2px 10px rgba(108,140,255,0.12); }
     .drawer-task-item.done { opacity: 0.5; }
-    .drawer-task-check { width: 14px; height: 14px; margin-top: 2px; cursor: pointer; accent-color: var(--primary); flex-shrink: 0; }
+    .drawer-task-item.editing-highlight { border-color: var(--warning); box-shadow: 0 0 0 2px rgba(251,191,36,0.2); }
+    .drawer-task-check { width: 14px; height: 14px; margin-top: 3px; cursor: pointer; accent-color: var(--primary); flex-shrink: 0; }
     .drawer-task-info { flex: 1; min-width: 0; }
-    .drawer-task-title { font-size: 0.82rem; font-weight: 700; line-height: 1.3; word-break: break-word; }
+    .drawer-task-title {
+      font-size: 0.82rem; font-weight: 700; line-height: 1.3; word-break: break-word;
+      cursor: pointer;
+    }
+    .drawer-task-title:hover { color: var(--primary); text-decoration: underline; }
     .drawer-task-title.done-text { text-decoration: line-through; }
     .drawer-task-meta { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
     .drawer-task-sub { font-size: 0.68rem; color: var(--text-muted); font-style: italic; }
     .drawer-empty { text-align: center; color: var(--text-muted); padding: 2rem 1rem; font-size: 0.82rem; }
+
+    /* Action buttons on drawer task items */
+    .drawer-task-actions {
+      display: flex; flex-direction: column; gap: 4px;
+      flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
+    }
+    .drawer-task-item:hover .drawer-task-actions { opacity: 1; }
+    .dt-btn {
+      width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text-muted);
+      cursor: pointer; font-size: 0.75rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; flex-shrink: 0;
+    }
+    .dt-btn.edit:hover  { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
+    .dt-btn.del:hover   { background: var(--danger); color: white; border-color: var(--danger); }
+
+    /* Drawer add-task footer button */
+    .drawer-add-footer {
+      padding: 0.75rem 1rem; border-top: 1px solid var(--border);
+      background: var(--surface); flex-shrink: 0;
+    }
+    .drawer-add-footer button {
+      width: 100%; background: var(--primary-light); color: var(--primary);
+      border: 1px dashed var(--primary); border-radius: 8px;
+      padding: 0.55rem; font: inherit; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .drawer-add-footer button:hover { background: var(--primary); color: white; border-style: solid; }
 
     .drawer-summary {
       display: flex; gap: 8px; flex-wrap: wrap;
@@ -598,6 +633,11 @@
     </div>
     <div class="drawer-summary" id="drawer-summary"></div>
     <div class="drawer-body" id="drawer-body"></div>
+    <div class="drawer-add-footer" id="drawer-add-footer" style="display:none;">
+      <button onclick="openQuickAdd(_currentDrawerDate)" id="drawer-add-btn">
+        <span>＋</span> Aggiungi compito per questo giorno
+      </button>
+    </div>
   </div>
 
   <div class="app-container">
@@ -1094,81 +1134,143 @@
     // ═══════════════════════════════════════════
     //  RIGHT DRAWER
     // ═══════════════════════════════════════════
+    let _currentDrawerDate = "";
+
     function openDrawer(dateStr){
-      const drawer=document.getElementById("day-drawer");
-      const colRight=document.getElementById("col-right");
-      const title=document.getElementById("drawer-title");
-      const dateEl=document.getElementById("drawer-date");
-      const summary=document.getElementById("drawer-summary");
-      const body=document.getElementById("drawer-body");
+      _currentDrawerDate = dateStr;
+      const drawer    = document.getElementById("day-drawer");
+      const colRight  = document.getElementById("col-right");
+      const title     = document.getElementById("drawer-title");
+      const dateEl    = document.getElementById("drawer-date");
+      const summary   = document.getElementById("drawer-summary");
+      const body      = document.getElementById("drawer-body");
+      const footer    = document.getElementById("drawer-add-footer");
 
-      const humanDate=formatHumanDate(dateStr,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-      title.textContent="Compiti del giorno";
-      dateEl.textContent=humanDate;
-
-      // Get tasks for this date (respect active cats filter)
-      const activeCats=safeArray(state.calvActiveCats);
-      const dayTasks=state.entries.filter(t=>isTaskScheduledForDate(t,dateStr)&&(!activeCats.length||activeCats.includes(t.cat)));
-
-      // Summary
-      const total=dayTasks.length;
-      const done=dayTasks.filter(t=>isTaskCompletedForDate(t,dateStr)).length;
-      const high=dayTasks.filter(t=>t.pri==="high").length;
-      summary.innerHTML=`
-        <span class="drawer-stat"><strong>${total}</strong> totali</span>
-        <span class="drawer-stat"><strong>${done}</strong> completati</span>
-        <span class="drawer-stat"><strong>${total-done}</strong> aperti</span>
-        ${high?`<span class="drawer-stat" style="border-color:var(--danger);color:var(--danger)"><strong>🔴 ${high}</strong> scadenze</span>`:""}
-      `;
-
-      if(!dayTasks.length){
-        body.innerHTML=`<div class="drawer-empty">🎉 Nessun compito per questa data</div>`;
-      } else {
-        // Group by category
-        const catGroups={};
-        dayTasks.forEach(t=>{ if(!catGroups[t.cat])catGroups[t.cat]=[]; catGroups[t.cat].push(t); });
-        const cats=Object.keys(catGroups).sort();
-
-        let html="";
-        cats.forEach(cat=>{
-          const color=state.catColors[cat]||DEFAULT_TASK_COLOR;
-          const tasks=catGroups[cat].sort((a,b)=>{
-            const po={high:0,med:1,low:2};
-            if(po[a.pri]!==po[b.pri])return po[a.pri]-po[b.pri];
-            return a.text.localeCompare(b.text,"it");
-          });
-          html+=`<div class="drawer-cat-block">
-            <div class="drawer-cat-label" style="background:${color}22;border:1px solid ${color};color:${color};">
-              <span style="width:7px;height:7px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span>
-              ${escapeHtml(cat)} <span style="font-family:var(--font-mono);opacity:0.7;">${tasks.length}</span>
-            </div>`;
-          tasks.forEach(t=>{
-            const isDone=isTaskCompletedForDate(t,dateStr);
-            const priIcon=t.pri==="high"?"🔴":t.pri==="med"?"🟡":"🟢";
-            html+=`<div class="drawer-task-item ${isDone?"done":""}" onclick="event.stopPropagation()">
-              <input type="checkbox" class="drawer-task-check" ${isDone?"checked":""} onclick="toggleTaskStatus(${t.id},'${escapeJs(dateStr)}');openDrawer('${escapeJs(dateStr)}')" />
-              <div class="drawer-task-info">
-                <div class="drawer-task-title ${isDone?"done-text":""}">${priIcon} ${escapeHtml(t.text)}</div>
-                ${t.sub?`<div class="drawer-task-sub">${escapeHtml(t.sub)}</div>`:""}
-                <div class="drawer-task-meta">${t.time?"🕒 "+escapeHtml(t.time)+" · ":""}${isRecurring(t)?"↺ "+repeatLabel(t.repeat):"📅 "+formatHumanDate(t.date,{day:"2-digit",month:"2-digit"})}${t.link?` · <a href="${escapeHtml(t.link)}" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;" onclick="event.stopPropagation()">🔗</a>`:""}</div>
-                ${safeArray(t.subtasks).length?`<div style="margin-top:5px;font-size:0.68rem;color:var(--text-muted);">Steps: ${safeArray(t.subtasks).filter(st=>st.isComplete).length}/${safeArray(t.subtasks).length} completati</div>`:""}
-                ${t.notes?`<div style="margin-top:4px;font-size:0.68rem;color:var(--text-muted);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:250px;" title="${escapeHtml(t.notes)}">📝 ${escapeHtml(t.notes.substring(0,60))}${t.notes.length>60?"…":""}</div>`:""}
-              </div>
-            </div>`;
-          });
-          html+=`</div>`;
-        });
-        body.innerHTML=html;
-      }
-
+      // Open immediately — no delay
       drawer.classList.add("open");
       colRight.classList.add("drawer-open");
+
+      const humanDate = formatHumanDate(dateStr, {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+      title.textContent = "Compiti del giorno";
+      dateEl.textContent = humanDate;
+      footer.style.display = "block";
+
+      // Get tasks for this date
+      const activeCats = safeArray(state.calvActiveCats);
+      const dayTasks   = state.entries.filter(t =>
+        isTaskScheduledForDate(t, dateStr) &&
+        (!activeCats.length || activeCats.includes(t.cat))
+      );
+
+      // Summary bar
+      const total = dayTasks.length;
+      const done  = dayTasks.filter(t => isTaskCompletedForDate(t, dateStr)).length;
+      const high  = dayTasks.filter(t => t.pri === "high").length;
+      summary.innerHTML = `
+        <span class="drawer-stat"><strong>${total}</strong> totali</span>
+        <span class="drawer-stat"><strong>${done}</strong> ✓</span>
+        <span class="drawer-stat"><strong>${total - done}</strong> aperti</span>
+        ${high ? `<span class="drawer-stat" style="border-color:var(--danger);color:var(--danger);"><strong>🔴 ${high}</strong> scad.</span>` : ""}
+      `;
+
+      if (!dayTasks.length) {
+        body.innerHTML = `<div class="drawer-empty">
+          📭 Nessun compito per questa data.<br>
+          <span style="font-size:0.75rem;margin-top:6px;display:inline-block;">Usa il pulsante qui sotto per aggiungerne uno.</span>
+        </div>`;
+        return;
+      }
+
+      // Group by category
+      const catGroups = {};
+      dayTasks.forEach(t => { if (!catGroups[t.cat]) catGroups[t.cat] = []; catGroups[t.cat].push(t); });
+
+      let html = "";
+      Object.keys(catGroups).sort().forEach(cat => {
+        const color = state.catColors[cat] || DEFAULT_TASK_COLOR;
+        const tasks = catGroups[cat].sort((a, b) => {
+          const po = {high:0, med:1, low:2};
+          if (po[a.pri] !== po[b.pri]) return po[a.pri] - po[b.pri];
+          return a.text.localeCompare(b.text, "it");
+        });
+
+        html += `<div class="drawer-cat-block">
+          <div class="drawer-cat-label" style="background:${color}22;border:1px solid ${color};color:${color};">
+            <span style="width:7px;height:7px;border-radius:50%;background:${color};display:inline-block;flex-shrink:0;"></span>
+            ${escapeHtml(cat)} <span style="font-family:var(--font-mono);opacity:0.7;">${tasks.length}</span>
+          </div>`;
+
+        tasks.forEach(t => {
+          const isDone   = isTaskCompletedForDate(t, dateStr);
+          const priIcon  = t.pri === "high" ? "🔴" : t.pri === "med" ? "🟡" : "🟢";
+          const recBadge = isRecurring(t)
+            ? `<span style="background:var(--primary-light);color:var(--primary);border-radius:4px;padding:0.1rem 0.35rem;font-size:0.6rem;font-family:var(--font-mono);">↺ ${repeatLabel(t.repeat)}</span> `
+            : "";
+
+          html += `<div class="drawer-task-item ${isDone ? "done" : ""}" id="dti-${t.id}">
+            <input type="checkbox" class="drawer-task-check"
+              ${isDone ? "checked" : ""}
+              onclick="event.stopPropagation();toggleTaskStatus(${t.id},'${escapeJs(dateStr)}');openDrawer('${escapeJs(dateStr)}')"
+              aria-label="${isDone ? "Riapri" : "Completa"}" />
+            <div class="drawer-task-info">
+              <div class="drawer-task-title ${isDone ? "done-text" : ""}"
+                   onclick="event.stopPropagation();editFromDrawer(${t.id},'${escapeJs(dateStr)}')"
+                   title="Clicca per modificare">
+                ${priIcon} ${escapeHtml(t.text)}
+              </div>
+              ${t.sub ? `<div class="drawer-task-sub">${escapeHtml(t.sub)}</div>` : ""}
+              <div class="drawer-task-meta">
+                ${t.time ? "🕒 " + escapeHtml(t.time) + " · " : ""}
+                ${recBadge}
+                📅 ${formatHumanDate(t.date, {day:"2-digit", month:"2-digit"})}
+                ${t.link ? ` · <a href="${escapeHtml(t.link)}" target="_blank" rel="noopener"
+                  style="color:var(--primary);text-decoration:none;"
+                  onclick="event.stopPropagation()">🔗</a>` : ""}
+              </div>
+              ${safeArray(t.subtasks).length ? `<div style="margin-top:4px;font-size:0.66rem;color:var(--text-muted);">
+                Steps: ${safeArray(t.subtasks).filter(s => s.isComplete).length}/${safeArray(t.subtasks).length} completati
+              </div>` : ""}
+              ${t.notes ? `<div style="margin-top:3px;font-size:0.66rem;color:var(--text-muted);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;"
+                title="${escapeHtml(t.notes)}">📝 ${escapeHtml(t.notes.substring(0, 55))}${t.notes.length > 55 ? "…" : ""}</div>` : ""}
+            </div>
+            <div class="drawer-task-actions">
+              <button class="dt-btn edit" onclick="event.stopPropagation();editFromDrawer(${t.id},'${escapeJs(dateStr)}')" title="Modifica">✏️</button>
+              <button class="dt-btn del"  onclick="event.stopPropagation();deleteFromDrawer(${t.id},'${escapeJs(dateStr)}')" title="Elimina">🗑️</button>
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      });
+
+      body.innerHTML = html;
     }
 
     function closeDrawer(){
       document.getElementById("day-drawer").classList.remove("open");
       document.getElementById("col-right").classList.remove("drawer-open");
-      // Don't clear calvSelectedDate so it stays highlighted
+    }
+
+    function editFromDrawer(taskId, dateStr) {
+      const t = state.entries.find(e => e.id === taskId);
+      if (!t) return;
+      // Highlight item being edited
+      document.querySelectorAll(".drawer-task-item").forEach(el => el.classList.remove("editing-highlight"));
+      const item = document.getElementById("dti-" + taskId);
+      if (item) item.classList.add("editing-highlight");
+      // Open modal pre-filled
+      openQuickAdd(dateStr, t);
+    }
+
+    function deleteFromDrawer(taskId, dateStr) {
+      const t = state.entries.find(e => e.id === taskId);
+      if (!t) return;
+      const label = t.text.length > 40 ? t.text.substring(0, 40) + "…" : t.text;
+      if (!confirm(`Eliminare "${label}"?`)) return;
+      state.entries = state.entries.filter(e => e.id !== taskId);
+      saveAndRender();
+      renderCalvGrid();
+      openDrawer(dateStr);
+      showToast("Compito eliminato");
     }
 
     // ─── PERMANENTI ───
@@ -1337,34 +1439,50 @@
     // ─── TOAST ───
     function showToast(msg,isErr=false){ const t=document.getElementById("toast");t.textContent=msg;t.style.background=isErr?"var(--danger)":"var(--success)";t.style.display="block";clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.style.display="none",2600); }
 
-    // ═══════════════════════════════════════════
-    //  QUICK-ADD FROM CALENDAR
-    // ═══════════════════════════════════════════
-    let _qaDate = "";
+    let _qaDate   = "";
+    let _qaEditId = null;   // null = create, number = edit
 
-    function openQuickAdd(dateStr) {
-      _qaDate = dateStr;
-      const modal = document.getElementById("modal-quick-add");
-      const badge = document.getElementById("qa-date-badge");
+    function openQuickAdd(dateStr, existingTask = null) {
+      _qaDate   = dateStr;
+      _qaEditId = existingTask ? existingTask.id : null;
+
+      const modal    = document.getElementById("modal-quick-add");
+      const badge    = document.getElementById("qa-date-badge");
+      const qaTitle  = document.getElementById("qa-title");
       const humanDate = formatHumanDate(dateStr, { weekday:"short", day:"numeric", month:"long", year:"numeric" });
       badge.textContent = humanDate;
+      qaTitle.textContent = existingTask ? "✏️ Modifica compito" : "➕ Nuovo compito";
 
       // Populate category select
       const catSel = document.getElementById("qa-cat");
-      const cats = getSortedCategories();
+      const cats   = getSortedCategories();
       catSel.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
-      // Default to last used category
-      const lastCat = document.getElementById("task-cat").value;
-      if (cats.includes(lastCat)) catSel.value = lastCat;
-      updateQuickAddSubs();
 
-      // Reset fields
-      document.getElementById("qa-text").value = "";
-      document.getElementById("qa-time").value = "";
-      document.getElementById("qa-pri").value = "low";
-      document.getElementById("qa-link").value = "";
-      document.getElementById("qa-notes").value = "";
-      selectRepeat("none");
+      if (existingTask) {
+        // Pre-fill from existing task
+        document.getElementById("qa-text").value  = existingTask.text || "";
+        document.getElementById("qa-time").value  = existingTask.time || "";
+        document.getElementById("qa-pri").value   = existingTask.pri  || "low";
+        document.getElementById("qa-link").value  = existingTask.link || "";
+        document.getElementById("qa-notes").value = existingTask.notes || "";
+        catSel.value = existingTask.cat || cats[0];
+        updateQuickAddSubs();
+        document.getElementById("qa-sub").value = existingTask.sub || "";
+        const rep = existingTask.repeat || "none";
+        // Map biweekly → weekly for the 4-card UI (show weekly selected)
+        selectRepeat(["none","weekly","monthly","yearly"].includes(rep) ? rep : "none");
+      } else {
+        // Fresh form
+        document.getElementById("qa-text").value  = "";
+        document.getElementById("qa-time").value  = "";
+        document.getElementById("qa-pri").value   = "low";
+        document.getElementById("qa-link").value  = "";
+        document.getElementById("qa-notes").value = "";
+        const lastCat = document.getElementById("task-cat").value;
+        catSel.value  = cats.includes(lastCat) ? lastCat : cats[0];
+        updateQuickAddSubs();
+        selectRepeat("none");
+      }
 
       modal.style.display = "flex";
       modal.setAttribute("aria-hidden", "false");
@@ -1375,16 +1493,20 @@
       const modal = document.getElementById("modal-quick-add");
       modal.style.display = "none";
       modal.setAttribute("aria-hidden", "true");
+      _qaEditId = null;
+      // Remove editing highlight from drawer
+      document.querySelectorAll(".drawer-task-item").forEach(el => el.classList.remove("editing-highlight"));
     }
 
     function updateQuickAddSubs() {
-      const cat = document.getElementById("qa-cat").value;
-      const dot = document.getElementById("qa-cat-dot");
+      const cat  = document.getElementById("qa-cat").value;
+      const dot  = document.getElementById("qa-cat-dot");
       const subSel = document.getElementById("qa-sub");
-      const color = state.catColors[cat] || DEFAULT_TASK_COLOR;
+      const color  = state.catColors[cat] || DEFAULT_TASK_COLOR;
       dot.style.background = color;
       const subs = safeArray(state.customCats[cat]);
-      subSel.innerHTML = `<option value="">Generale</option>` + subs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+      subSel.innerHTML = `<option value="">Generale</option>` +
+        subs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
     }
 
     function selectRepeat(val) {
@@ -1392,21 +1514,19 @@
         const el = document.getElementById("rc-" + r);
         if (el) el.classList.toggle("selected", r === val);
       });
-      // Set the radio
       const radio = document.querySelector(`input[name="qa-repeat"][value="${val}"]`);
       if (radio) radio.checked = true;
 
-      // Show info banner
-      const info = document.getElementById("qa-repeat-info");
+      const info     = document.getElementById("qa-repeat-info");
       const infoText = document.getElementById("qa-repeat-info-text");
       const humanDate = formatHumanDate(_qaDate, { weekday:"long", day:"numeric", month:"long" });
       if (val === "none") {
         info.style.display = "none";
       } else {
         const msgs = {
-          weekly:  `↺ Settimanale — si ripeterà ogni ${formatHumanDate(_qaDate, {weekday:"long"})} a partire dal ${humanDate}`,
-          monthly: `↺ Mensile — si ripeterà il giorno ${new Date(_qaDate+"T00:00:00").getDate()} di ogni mese`,
-          yearly:  `↺ Annuale — si ripeterà ogni anno il ${formatHumanDate(_qaDate, {day:"numeric", month:"long"})}`
+          weekly:  `↺ Settimanale — ogni ${formatHumanDate(_qaDate, {weekday:"long"})} a partire dal ${humanDate}`,
+          monthly: `↺ Mensile — il giorno ${new Date(_qaDate + "T00:00:00").getDate()} di ogni mese`,
+          yearly:  `↺ Annuale — ogni anno il ${formatHumanDate(_qaDate, {day:"numeric", month:"long"})}`
         };
         infoText.textContent = msgs[val] || "";
         info.style.display = "block";
@@ -1415,37 +1535,53 @@
 
     function saveQuickAdd() {
       const text = sanitizeString(document.getElementById("qa-text").value);
-      if (!text) { document.getElementById("qa-text").focus(); document.getElementById("qa-text").style.borderColor = "var(--danger)"; setTimeout(()=>document.getElementById("qa-text").style.borderColor="",1200); return; }
-      const cat = document.getElementById("qa-cat").value || getSortedCategories()[0] || "Clienti";
-      const sub = document.getElementById("qa-sub").value;
-      const time = sanitizeTime(document.getElementById("qa-time").value);
-      const pri = sanitizePriority(document.getElementById("qa-pri").value);
-      const link = sanitizeTaskLink(document.getElementById("qa-link").value);
-      const notes = sanitizeString(document.getElementById("qa-notes").value);
+      if (!text) {
+        const f = document.getElementById("qa-text");
+        f.style.borderColor = "var(--danger)";
+        f.focus();
+        setTimeout(() => f.style.borderColor = "", 1200);
+        return;
+      }
+      const cat       = document.getElementById("qa-cat").value || getSortedCategories()[0] || "Clienti";
+      const sub       = document.getElementById("qa-sub").value;
+      const time      = sanitizeTime(document.getElementById("qa-time").value);
+      const pri       = sanitizePriority(document.getElementById("qa-pri").value);
+      const link      = sanitizeTaskLink(document.getElementById("qa-link").value);
+      const notes     = sanitizeString(document.getElementById("qa-notes").value);
       const repeatVal = (document.querySelector('input[name="qa-repeat"]:checked') || {}).value || "none";
       const taskColor = state.catColors[cat] || DEFAULT_TASK_COLOR;
 
-      state.entries.push({
-        id: Date.now(),
-        text, cat, sub, link, notes,
-        taskColor, image: "",
-        date: _qaDate, time, pri,
-        repeat: sanitizeRepeat(repeatVal),
-        subtasks: [],
-        completedDates: [],
-        createdAt: todayStr()
-      });
+      if (_qaEditId !== null) {
+        // ── EDIT MODE ──
+        const idx = state.entries.findIndex(e => e.id === _qaEditId);
+        if (idx !== -1) {
+          state.entries[idx] = {
+            ...state.entries[idx],
+            text, cat, sub, link, notes, taskColor,
+            time, pri, repeat: sanitizeRepeat(repeatVal)
+          };
+          showToast("Compito aggiornato ✓");
+        }
+      } else {
+        // ── CREATE MODE ──
+        state.entries.push({
+          id: Date.now(), text, cat, sub, link, notes,
+          taskColor, image: "",
+          date: _qaDate, time, pri,
+          repeat: sanitizeRepeat(repeatVal),
+          subtasks: [], completedDates: [], createdAt: todayStr()
+        });
+        const repeatMsg = repeatVal !== "none" ? ` (${repeatLabel(repeatVal)})` : "";
+        showToast(`Compito aggiunto${repeatMsg} ✓`);
+      }
 
       closeQuickAdd();
       saveAndRender();
       renderCalvLegend();
       renderCalvGrid();
-      // Re-open drawer to show the new task
       state.calvSelectedDate = _qaDate;
       persistState();
       openDrawer(_qaDate);
-      const repeatMsg = repeatVal !== "none" ? ` (${repeatLabel(repeatVal)})` : "";
-      showToast(`Compito aggiunto${repeatMsg} ✓`);
     }
 
     window.onload=init;
