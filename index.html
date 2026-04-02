@@ -195,6 +195,58 @@
     }
     .calv-overflow { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
 
+    /* ── Add button on calendar cell ── */
+    .calv-add-btn {
+      position: absolute; top: 5px; right: 5px;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--primary); color: white;
+      border: none; cursor: pointer; font-size: 1rem; line-height: 1;
+      display: none; align-items: center; justify-content: center;
+      z-index: 5; transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 2px 8px rgba(108,140,255,0.4);
+    }
+    .calv-cell:not(.other-month):hover .calv-add-btn { display: flex; }
+    .calv-add-btn:hover { transform: scale(1.15); box-shadow: 0 4px 14px rgba(108,140,255,0.6); }
+
+    /* ── Quick-add modal ── */
+    .qa-modal-content {
+      width: 100%; max-width: 520px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 1.5rem; box-shadow: var(--shadow);
+    }
+    .qa-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+    .qa-title { font-size: 1rem; font-weight: 800; letter-spacing: -0.02em; }
+    .qa-date-badge {
+      font-size: 0.72rem; font-family: var(--font-mono); font-weight: 600;
+      background: var(--primary-light); color: var(--primary);
+      border: 1px solid var(--primary); border-radius: 999px; padding: 0.3rem 0.75rem;
+    }
+    .qa-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
+    .qa-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .qa-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+    .qa-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 4px; display: block; }
+    .qa-field { width: 100%; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; font: inherit; font-size: 0.85rem; }
+    .qa-field:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+    /* Repeat option cards */
+    .repeat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .repeat-card {
+      border: 2px solid var(--border); border-radius: 10px; padding: 0.6rem 0.4rem;
+      text-align: center; cursor: pointer; transition: all 0.15s;
+      background: var(--bg-main);
+    }
+    .repeat-card:hover { border-color: var(--primary); background: var(--primary-light); }
+    .repeat-card.selected { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
+    .repeat-card input[type="radio"] { display: none; }
+    .repeat-card .rc-icon { font-size: 1.2rem; display: block; margin-bottom: 3px; }
+    .repeat-card .rc-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; }
+    .repeat-card .rc-desc { font-size: 0.6rem; color: var(--text-muted); display: block; margin-top: 2px; }
+
+    /* Category color dot in select */
+    .qa-cat-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+    .qa-cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; transition: background 0.2s; }
+    .qa-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+
     /* ══════════════════════════════
        CAL VIEW TOGGLE BUTTON
     ══════════════════════════════ */
@@ -429,6 +481,108 @@
       <div class="modal-actions">
         <button class="btn-secondary" type="button" onclick="closeCatModal()">Chiudi</button>
         <button class="btn-main" type="button" onclick="addNewCategory()">Aggiungi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Quick add task from calendar -->
+  <div id="modal-quick-add" class="modal-backdrop" aria-hidden="true" onclick="if(event.target===this)closeQuickAdd()">
+    <div class="qa-modal-content" role="dialog" aria-modal="true" aria-labelledby="qa-title">
+
+      <div class="qa-header">
+        <div>
+          <div class="qa-title" id="qa-title">➕ Nuovo compito</div>
+          <div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">Stai aggiungendo un compito al calendario</div>
+        </div>
+        <span class="qa-date-badge" id="qa-date-badge">—</span>
+      </div>
+
+      <!-- Title -->
+      <div style="margin-bottom:10px;">
+        <label class="qa-label" for="qa-text">Titolo compito *</label>
+        <input class="qa-field" type="text" id="qa-text" placeholder="Cosa devi fare?" onkeydown="if(event.key==='Enter')saveQuickAdd()" />
+      </div>
+
+      <!-- Category + subcategory -->
+      <div class="qa-grid-2" style="margin-bottom:10px;">
+        <div>
+          <label class="qa-label" for="qa-cat">Area</label>
+          <div class="qa-cat-row">
+            <span class="qa-cat-dot" id="qa-cat-dot"></span>
+            <select class="qa-field" id="qa-cat" style="flex:1;" onchange="updateQuickAddSubs()"></select>
+          </div>
+        </div>
+        <div>
+          <label class="qa-label" for="qa-sub">Tipo</label>
+          <select class="qa-field" id="qa-sub"><option value="">Generale</option></select>
+        </div>
+      </div>
+
+      <!-- Time + Priority -->
+      <div class="qa-grid-2" style="margin-bottom:14px;">
+        <div>
+          <label class="qa-label" for="qa-time">Ora</label>
+          <input class="qa-field" type="time" id="qa-time" />
+        </div>
+        <div>
+          <label class="qa-label" for="qa-pri">Priorità</label>
+          <select class="qa-field" id="qa-pri">
+            <option value="low">🟢 Normale</option>
+            <option value="med">🟡 Urgente</option>
+            <option value="high">🔴 Scadenza!</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Repeat -->
+      <label class="qa-label" style="margin-bottom:8px;">Ricorrenza</label>
+      <div class="repeat-grid">
+        <label class="repeat-card selected" id="rc-none">
+          <input type="radio" name="qa-repeat" value="none" checked onchange="selectRepeat('none')" />
+          <span class="rc-icon">1️⃣</span>
+          <span class="rc-label">Una tantum</span>
+          <span class="rc-desc">Solo questa data</span>
+        </label>
+        <label class="repeat-card" id="rc-weekly">
+          <input type="radio" name="qa-repeat" value="weekly" onchange="selectRepeat('weekly')" />
+          <span class="rc-icon">📅</span>
+          <span class="rc-label">Settimanale</span>
+          <span class="rc-desc">Ogni settimana</span>
+        </label>
+        <label class="repeat-card" id="rc-monthly">
+          <input type="radio" name="qa-repeat" value="monthly" onchange="selectRepeat('monthly')" />
+          <span class="rc-icon">🗓️</span>
+          <span class="rc-label">Mensile</span>
+          <span class="rc-desc">Ogni mese</span>
+        </label>
+        <label class="repeat-card" id="rc-yearly">
+          <input type="radio" name="qa-repeat" value="yearly" onchange="selectRepeat('yearly')" />
+          <span class="rc-icon">🔁</span>
+          <span class="rc-label">Annuale</span>
+          <span class="rc-desc">Ogni anno</span>
+        </label>
+      </div>
+
+      <!-- Recurring info banner -->
+      <div id="qa-repeat-info" style="display:none;background:var(--primary-light);border:1px solid var(--primary);border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;color:var(--primary);margin-bottom:12px;font-family:var(--font-mono);">
+        <span id="qa-repeat-info-text"></span>
+      </div>
+
+      <!-- Optional link -->
+      <div style="margin-bottom:10px;">
+        <label class="qa-label" for="qa-link">Link (opzionale)</label>
+        <input class="qa-field" type="url" id="qa-link" placeholder="URL cliente, Drive, brief..." />
+      </div>
+
+      <!-- Notes -->
+      <div style="margin-bottom:4px;">
+        <label class="qa-label" for="qa-notes">Note (opzionale)</label>
+        <textarea class="qa-field" id="qa-notes" placeholder="Briefing, keyword, dettagli..." style="height:56px;resize:vertical;"></textarea>
+      </div>
+
+      <div class="qa-actions">
+        <button class="btn-secondary" type="button" onclick="closeQuickAdd()">Annulla</button>
+        <button class="btn-main" type="button" onclick="saveQuickAdd()" style="margin-top:0;">💾 Salva compito</button>
       </div>
     </div>
   </div>
@@ -773,14 +927,14 @@
     function bindKeyboardShortcuts(){
       document.addEventListener("keydown",e=>{
         const mo=isModalOpen();
-        if(e.key==="Escape"&&mo){closeConfirm();closeCatModal();closeMoveModal();return;}
+        if(e.key==="Escape"&&mo){closeConfirm();closeCatModal();closeMoveModal();closeQuickAdd();return;}
         const isIn=["INPUT","TEXTAREA","SELECT"].includes(document.activeElement.tagName);
         if(e.key==="Escape"&&!mo){resetForm();closeFunzioniMenu();closeDrawer();return;}
         if(e.altKey&&e.key.toLowerCase()==="n"&&!isIn){e.preventDefault();document.getElementById("task-text").focus();}
         if(e.altKey&&e.key.toLowerCase()==="f"&&!isIn){e.preventDefault();document.getElementById("search-box").focus();}
       });
     }
-    function isModalOpen(){ return["modal-confirm","modal-input","modal-move"].some(id=>document.getElementById(id).style.display==="flex"); }
+    function isModalOpen(){ return["modal-confirm","modal-input","modal-move","modal-quick-add"].some(id=>document.getElementById(id).style.display==="flex"); }
 
     // ─── PANELS ───
     function openPanel(id){ const p=document.getElementById(id);if(p)p.classList.add("open"); }
@@ -911,6 +1065,7 @@
         if(overflow>0) dotsHtml+=`<span class="calv-overflow">+${overflow}</span>`;
 
         cells+=`<div class="${classes}" onclick="calvSelectDay('${ds}')" data-date="${ds}">
+          <button class="calv-add-btn" onclick="event.stopPropagation();openQuickAdd('${ds}')" title="Aggiungi compito per ${ds}" aria-label="Aggiungi compito">+</button>
           <div class="calv-cell-num">${d}</div>
           <div class="calv-dots">${dotsHtml}</div>
         </div>`;
@@ -1181,6 +1336,117 @@
 
     // ─── TOAST ───
     function showToast(msg,isErr=false){ const t=document.getElementById("toast");t.textContent=msg;t.style.background=isErr?"var(--danger)":"var(--success)";t.style.display="block";clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.style.display="none",2600); }
+
+    // ═══════════════════════════════════════════
+    //  QUICK-ADD FROM CALENDAR
+    // ═══════════════════════════════════════════
+    let _qaDate = "";
+
+    function openQuickAdd(dateStr) {
+      _qaDate = dateStr;
+      const modal = document.getElementById("modal-quick-add");
+      const badge = document.getElementById("qa-date-badge");
+      const humanDate = formatHumanDate(dateStr, { weekday:"short", day:"numeric", month:"long", year:"numeric" });
+      badge.textContent = humanDate;
+
+      // Populate category select
+      const catSel = document.getElementById("qa-cat");
+      const cats = getSortedCategories();
+      catSel.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+      // Default to last used category
+      const lastCat = document.getElementById("task-cat").value;
+      if (cats.includes(lastCat)) catSel.value = lastCat;
+      updateQuickAddSubs();
+
+      // Reset fields
+      document.getElementById("qa-text").value = "";
+      document.getElementById("qa-time").value = "";
+      document.getElementById("qa-pri").value = "low";
+      document.getElementById("qa-link").value = "";
+      document.getElementById("qa-notes").value = "";
+      selectRepeat("none");
+
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+      setTimeout(() => document.getElementById("qa-text").focus(), 80);
+    }
+
+    function closeQuickAdd() {
+      const modal = document.getElementById("modal-quick-add");
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
+    }
+
+    function updateQuickAddSubs() {
+      const cat = document.getElementById("qa-cat").value;
+      const dot = document.getElementById("qa-cat-dot");
+      const subSel = document.getElementById("qa-sub");
+      const color = state.catColors[cat] || DEFAULT_TASK_COLOR;
+      dot.style.background = color;
+      const subs = safeArray(state.customCats[cat]);
+      subSel.innerHTML = `<option value="">Generale</option>` + subs.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+    }
+
+    function selectRepeat(val) {
+      ["none","weekly","monthly","yearly"].forEach(r => {
+        const el = document.getElementById("rc-" + r);
+        if (el) el.classList.toggle("selected", r === val);
+      });
+      // Set the radio
+      const radio = document.querySelector(`input[name="qa-repeat"][value="${val}"]`);
+      if (radio) radio.checked = true;
+
+      // Show info banner
+      const info = document.getElementById("qa-repeat-info");
+      const infoText = document.getElementById("qa-repeat-info-text");
+      const humanDate = formatHumanDate(_qaDate, { weekday:"long", day:"numeric", month:"long" });
+      if (val === "none") {
+        info.style.display = "none";
+      } else {
+        const msgs = {
+          weekly:  `↺ Settimanale — si ripeterà ogni ${formatHumanDate(_qaDate, {weekday:"long"})} a partire dal ${humanDate}`,
+          monthly: `↺ Mensile — si ripeterà il giorno ${new Date(_qaDate+"T00:00:00").getDate()} di ogni mese`,
+          yearly:  `↺ Annuale — si ripeterà ogni anno il ${formatHumanDate(_qaDate, {day:"numeric", month:"long"})}`
+        };
+        infoText.textContent = msgs[val] || "";
+        info.style.display = "block";
+      }
+    }
+
+    function saveQuickAdd() {
+      const text = sanitizeString(document.getElementById("qa-text").value);
+      if (!text) { document.getElementById("qa-text").focus(); document.getElementById("qa-text").style.borderColor = "var(--danger)"; setTimeout(()=>document.getElementById("qa-text").style.borderColor="",1200); return; }
+      const cat = document.getElementById("qa-cat").value || getSortedCategories()[0] || "Clienti";
+      const sub = document.getElementById("qa-sub").value;
+      const time = sanitizeTime(document.getElementById("qa-time").value);
+      const pri = sanitizePriority(document.getElementById("qa-pri").value);
+      const link = sanitizeTaskLink(document.getElementById("qa-link").value);
+      const notes = sanitizeString(document.getElementById("qa-notes").value);
+      const repeatVal = (document.querySelector('input[name="qa-repeat"]:checked') || {}).value || "none";
+      const taskColor = state.catColors[cat] || DEFAULT_TASK_COLOR;
+
+      state.entries.push({
+        id: Date.now(),
+        text, cat, sub, link, notes,
+        taskColor, image: "",
+        date: _qaDate, time, pri,
+        repeat: sanitizeRepeat(repeatVal),
+        subtasks: [],
+        completedDates: [],
+        createdAt: todayStr()
+      });
+
+      closeQuickAdd();
+      saveAndRender();
+      renderCalvLegend();
+      renderCalvGrid();
+      // Re-open drawer to show the new task
+      state.calvSelectedDate = _qaDate;
+      persistState();
+      openDrawer(_qaDate);
+      const repeatMsg = repeatVal !== "none" ? ` (${repeatLabel(repeatVal)})` : "";
+      showToast(`Compito aggiunto${repeatMsg} ✓`);
+    }
 
     window.onload=init;
   </script>
