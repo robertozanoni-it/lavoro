@@ -124,7 +124,6 @@
     .drawer-task-sub { font-size: 0.68rem; color: var(--text-muted); font-style: italic; }
     .drawer-empty { text-align: center; color: var(--text-muted); padding: 2rem 1rem; font-size: 0.82rem; }
 
-    /* Action buttons on drawer task items */
     .drawer-task-actions {
       display: flex; flex-direction: column; gap: 4px;
       flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
@@ -140,7 +139,6 @@
     .dt-btn.edit:hover  { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
     .dt-btn.del:hover   { background: var(--danger); color: white; border-color: var(--danger); }
 
-    /* Drawer add-task footer button */
     .drawer-add-footer {
       padding: 0.75rem 1rem; border-top: 1px solid var(--border);
       background: var(--surface); flex-shrink: 0;
@@ -219,7 +217,6 @@
     .calv-dots { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; align-content: flex-start; overflow: hidden; }
     .calv-cat-dot {
       width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-      title: attr(data-cat);
     }
     .calv-pill {
       display: inline-flex; align-items: center; gap: 3px;
@@ -230,7 +227,6 @@
     }
     .calv-overflow { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; font-family: var(--font-mono); }
 
-    /* ── Add button on calendar cell ── */
     .calv-add-btn {
       position: absolute; top: 5px; right: 5px;
       width: 22px; height: 22px; border-radius: 50%;
@@ -257,13 +253,10 @@
       border: 1px solid var(--primary); border-radius: 999px; padding: 0.3rem 0.75rem;
     }
     .qa-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
-    .qa-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .qa-grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
     .qa-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); margin-bottom: 4px; display: block; }
     .qa-field { width: 100%; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; font: inherit; font-size: 0.85rem; }
     .qa-field:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
 
-    /* Repeat option cards */
     .repeat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
     .repeat-card {
       border: 2px solid var(--border); border-radius: 10px; padding: 0.6rem 0.4rem;
@@ -277,7 +270,6 @@
     .repeat-card .rc-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display: block; }
     .repeat-card .rc-desc { font-size: 0.6rem; color: var(--text-muted); display: block; margin-top: 2px; }
 
-    /* Category color dot in select */
     .qa-cat-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
     .qa-cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; transition: background 0.2s; }
     .qa-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
@@ -354,25 +346,76 @@
     .field-row-4 { display: grid; grid-template-columns: 1fr 115px 1fr 1fr; gap: 8px; }
     .input-group { display: grid; grid-template-columns: 1fr 38px 38px 1fr; gap: 6px; align-items: start; }
 
+    /* ══════════════════════════════
+       COLOURED SIDEBAR BUTTONS
+    ══════════════════════════════ */
     .btn-main, .btn-tool, .btn-danger, .btn-secondary, .btn-subtle { border: none; cursor: pointer; border-radius: var(--radius-sm); transition: 0.18s ease; }
-    .btn-main { width: 100%; background: var(--primary); color: white; font-weight: 700; padding: 0.72rem; margin-top: 6px; letter-spacing: 0.02em; }
-    .btn-main:hover { filter: brightness(1.1); }
-    .btn-secondary { width: 100%; background: var(--surface-2); color: var(--text-main); border: 1px solid var(--border); font-weight: 600; padding: 0.72rem; }
-    .btn-subtle { background: transparent; color: var(--text-muted); text-decoration: underline; padding: 0.35rem; font-size: 0.74rem; width: 100%; display: none; margin-top: 0.3rem; }
-    .btn-tool { background: var(--surface); border: 1px solid var(--border); color: var(--text-main); font-weight: 600; padding: 0.5rem 0.7rem; font-size: 0.72rem; min-height: 38px; }
-    .btn-tool:hover, .btn-secondary:hover { background: var(--surface-2); }
-    .btn-add-cat { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); width: 38px; height: 40px; border-radius: var(--radius-sm); cursor: pointer; font-size: 1rem; font-weight: 800; }
-    .btn-danger { width: 100%; margin-top: 10px; background: transparent; color: var(--danger); border: 1px solid var(--danger); font-weight: 700; font-size: 0.74rem; padding: 0.65rem; }
-    .btn-danger:hover { background: var(--danger); color: white; }
+    .btn-main {
+      width: 100%; color: white; font-weight: 700; padding: 0.72rem; margin-top: 6px; letter-spacing: 0.02em;
+      background: linear-gradient(135deg, #6c8cff 0%, #a78bfa 100%);
+    }
+    .btn-main:hover { filter: brightness(1.12); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(108,140,255,0.4); }
 
+    .btn-secondary {
+      width: 100%;
+      background: rgba(6,182,212,0.12); color: #06b6d4;
+      border: 1px solid rgba(6,182,212,0.35); font-weight: 600; padding: 0.72rem;
+    }
+    .btn-secondary:hover { background: rgba(6,182,212,0.22); border-color: #06b6d4; }
+
+    .btn-subtle { background: transparent; color: var(--text-muted); text-decoration: underline; padding: 0.35rem; font-size: 0.74rem; width: 100%; display: none; margin-top: 0.3rem; }
+    .btn-tool {
+      background: rgba(108,140,255,0.1); border: 1px solid rgba(108,140,255,0.3);
+      color: var(--primary); font-weight: 600; padding: 0.5rem 0.7rem; font-size: 0.72rem; min-height: 38px;
+      border-radius: var(--radius-sm);
+    }
+    .btn-tool:hover { background: rgba(108,140,255,0.22); border-color: var(--primary); }
+
+    .btn-add-cat { background: var(--primary-light); color: var(--primary); border: 1px solid var(--primary); width: 38px; height: 40px; border-radius: var(--radius-sm); cursor: pointer; font-size: 1rem; font-weight: 800; }
+    .btn-danger { width: 100%; margin-top: 10px; background: rgba(255,92,92,0.08); color: var(--danger); border: 1px solid rgba(255,92,92,0.4); font-weight: 700; font-size: 0.74rem; padding: 0.65rem; border-radius: var(--radius-sm); cursor: pointer; }
+    .btn-danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
+
+    /* "Colore area" reset button — teal */
+    .btn-reset-color {
+      background: rgba(20,184,166,0.12); border: 1px solid rgba(20,184,166,0.4);
+      color: #14b8a6; font-weight: 600; padding: 0.5rem 0.7rem; font-size: 0.72rem;
+      min-height: 38px; border-radius: var(--radius-sm); cursor: pointer;
+      transition: 0.18s ease; width: 100%;
+    }
+    .btn-reset-color:hover { background: rgba(20,184,166,0.22); border-color: #14b8a6; }
+
+    /* Funzioni menu */
     .funzioni-wrap { position: relative; margin-bottom: 0.85rem; flex-shrink: 0; }
-    .btn-funzioni { width: 100%; background: var(--primary); color: white; font-weight: 700; padding: 0.68rem 1rem; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.18s ease; letter-spacing: 0.02em; }
-    .btn-funzioni:hover { filter: brightness(1.1); }
+    .btn-funzioni {
+      width: 100%; font-weight: 700; padding: 0.68rem 1rem; border-radius: var(--radius-sm);
+      border: none; cursor: pointer; font-size: 0.82rem; display: flex; align-items: center;
+      justify-content: center; gap: 8px; transition: filter 0.18s ease; letter-spacing: 0.02em;
+      background: linear-gradient(135deg, #1a2040 0%, #252a38 100%);
+      color: var(--primary); border: 1px solid rgba(108,140,255,0.4);
+    }
+    .btn-funzioni:hover { filter: brightness(1.15); }
     .funzioni-menu { display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 600; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow); overflow: hidden; }
     .funzioni-menu.open { display: block; }
-    .funzioni-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 0.7rem 1rem; border: none; border-bottom: 1px solid var(--border); background: transparent; color: var(--text-main); cursor: pointer; font: inherit; font-weight: 600; font-size: 0.8rem; transition: background 0.15s ease; }
+
+    /* Each menu item gets a distinct accent */
+    .funzioni-item {
+      display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+      padding: 0.7rem 1rem; border: none; border-bottom: 1px solid var(--border);
+      background: transparent; color: var(--text-main); cursor: pointer; font: inherit;
+      font-weight: 600; font-size: 0.8rem; transition: background 0.15s ease;
+      border-left: 3px solid transparent;
+    }
     .funzioni-item:last-child { border-bottom: none; }
-    .funzioni-item:hover { background: var(--surface-2); }
+    .funzioni-item:nth-child(1) { border-left-color: #a78bfa; }
+    .funzioni-item:nth-child(2) { border-left-color: #34d399; }
+    .funzioni-item:nth-child(3) { border-left-color: #06b6d4; }
+    .funzioni-item:nth-child(4) { border-left-color: #f97316; }
+    .funzioni-item:nth-child(5) { border-left-color: #fbbf24; }
+    .funzioni-item:nth-child(1):hover { background: rgba(167,139,250,0.1); color: #a78bfa; }
+    .funzioni-item:nth-child(2):hover { background: rgba(52,211,153,0.1); color: #34d399; }
+    .funzioni-item:nth-child(3):hover { background: rgba(6,182,212,0.1); color: #06b6d4; }
+    .funzioni-item:nth-child(4):hover { background: rgba(249,115,22,0.1); color: #f97316; }
+    .funzioni-item:nth-child(5):hover { background: rgba(251,191,36,0.1); color: #fbbf24; }
 
     .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; text-align: center; user-select: none; }
     .calendar-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 0.8rem; font-weight: 700; }
@@ -436,6 +479,56 @@
     .progress-container { height: 6px; background: var(--surface-2); border-radius: 3px; margin-top: 8px; overflow: hidden; border: 1px solid var(--border); }
     .progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); width: 0%; transition: width 0.4s ease; }
 
+    /* ══════════════════════════════
+       FIXED CHECKLIST BAR (bottom of col-right)
+    ══════════════════════════════ */
+    #perm-fixed-bar {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      padding: 0.6rem 0 0;
+      background: var(--bg-main);
+      display: none;
+    }
+    .perm-fixed-bar-header {
+      font-size: 0.62rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.09em; color: var(--success);
+      margin-bottom: 0.45rem; display: flex; align-items: center; gap: 7px;
+    }
+    .perm-fixed-count {
+      background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3);
+      color: var(--success); border-radius: 4px; padding: 0.08rem 0.4rem;
+      font-family: var(--font-mono); font-size: 0.62rem;
+    }
+    .perm-fixed-row {
+      display: flex; flex-wrap: wrap; gap: 5px; align-items: center;
+    }
+    .perm-mini-card {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 0.25rem 0.5rem 0.25rem 0.45rem;
+      border-radius: 6px; font-size: 0.68rem; font-weight: 600;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-main);
+      border-left: 3px solid var(--cat-clr, var(--primary));
+      cursor: default; transition: all 0.15s;
+      max-width: 200px;
+    }
+    .perm-mini-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.25); border-color: var(--cat-clr, var(--primary)); }
+    .perm-mini-card.done { opacity: 0.38; text-decoration: line-through; }
+    .perm-mini-check { width: 11px; height: 11px; cursor: pointer; accent-color: var(--success); flex-shrink: 0; }
+    .perm-mini-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
+    .perm-mini-cat {
+      font-size: 0.58rem; font-family: var(--font-mono); opacity: 0.5;
+      background: rgba(0,0,0,0.15); border-radius: 3px; padding: 0.05rem 0.28rem;
+      flex-shrink: 0;
+    }
+    .perm-cat-divider {
+      font-size: 0.6rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--text-muted);
+      padding: 0.15rem 0.4rem; background: var(--surface-2);
+      border: 1px solid var(--border); border-radius: 5px;
+      flex-shrink: 0; align-self: center;
+    }
+
     #toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: var(--success); color: white; font-weight: 700; font-size: 0.82rem; padding: 0.8rem 1.2rem; border-radius: 10px; display: none; z-index: 9999; box-shadow: var(--shadow); font-family: var(--font-mono); }
     .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.72); display: none; align-items: center; justify-content: center; z-index: 9998; padding: 16px; }
     .modal-content { width: 100%; max-width: 400px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.35rem; box-shadow: var(--shadow); }
@@ -454,18 +547,12 @@
     .sidebar-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 2px; display: flex; flex-direction: column; gap: 0; min-height: 0; }
     .search-standalone { margin-bottom: 0.5rem; flex-shrink: 0; }
     .perm-task-picker { max-height: 150px; overflow-y: auto; margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px; background: var(--bg-main); }
-    .perm-focus-header { border-color: var(--success) !important; color: var(--success) !important; margin-top: 2rem; opacity: 0.8; }
-    .perm-focus-grid { display: flex; flex-wrap: wrap; gap: 10px; width: 100%; }
-    .perm-focus-card-wrap { width: calc(25% - 8px); min-width: 200px; }
-    .perm-focus-card-wrap .task-card { min-height: unset !important; padding: 0.5rem 0.65rem 0.5rem 0.8rem !important; opacity: 0.88; border-style: dashed; }
-    .perm-focus-card-wrap .task-title { font-size: 0.8rem !important; }
-    .perm-focus-card-wrap .task-meta, .perm-focus-card-wrap .task-link, .perm-focus-card-wrap .subtask-list, .perm-focus-card-wrap .btn-toggle-notes, .perm-focus-card-wrap .task-image-display { display: none !important; }
-    .confetti { position: fixed; width: 9px; height: 9px; z-index: 10000; pointer-events: none; }
 
-    /* Agenda view container */
     #agenda-view-container { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 
-    @media (max-width: 1300px) { .perm-focus-card-wrap { width: calc(33.333% - 7px); } .focus-grid .task-card { width: calc(50% - 7px); } }
+    .confetti { position: fixed; width: 9px; height: 9px; z-index: 10000; pointer-events: none; }
+
+    @media (max-width: 1300px) { .focus-grid .task-card { width: calc(50% - 7px); } }
     @media (max-width: 1120px) { .col-left { width: 390px; min-width: 330px; } .field-row-4 { grid-template-columns: 1fr 1fr; } .stats-footer { grid-template-columns: 1fr; } .field-inline-row { grid-template-columns: 1fr; } }
     @media (max-width: 860px) {
       body { overflow: auto; }
@@ -475,7 +562,7 @@
       .col-right.drawer-open { margin-right: 0; }
       .scroll-area { max-height: none; }
       .focus-grid .task-card { width: 100%; min-width: 100%; }
-      .perm-focus-card-wrap { width: 100%; min-width: 100%; }
+      #perm-fixed-bar { display: none !important; }
     }
   </style>
 </head>
@@ -523,7 +610,6 @@
   <!-- MODAL: Quick add task from calendar -->
   <div id="modal-quick-add" class="modal-backdrop" aria-hidden="true" onclick="if(event.target===this)closeQuickAdd()">
     <div class="qa-modal-content" role="dialog" aria-modal="true" aria-labelledby="qa-title">
-
       <div class="qa-header">
         <div>
           <div class="qa-title" id="qa-title">➕ Nuovo compito</div>
@@ -531,14 +617,10 @@
         </div>
         <span class="qa-date-badge" id="qa-date-badge">—</span>
       </div>
-
-      <!-- Title -->
       <div style="margin-bottom:10px;">
         <label class="qa-label" for="qa-text">Titolo compito *</label>
         <input class="qa-field" type="text" id="qa-text" placeholder="Cosa devi fare?" onkeydown="if(event.key==='Enter')saveQuickAdd()" />
       </div>
-
-      <!-- Category + subcategory -->
       <div class="qa-grid-2" style="margin-bottom:10px;">
         <div>
           <label class="qa-label" for="qa-cat">Area</label>
@@ -552,8 +634,6 @@
           <select class="qa-field" id="qa-sub"><option value="">Generale</option></select>
         </div>
       </div>
-
-      <!-- Time + Priority -->
       <div class="qa-grid-2" style="margin-bottom:14px;">
         <div>
           <label class="qa-label" for="qa-time">Ora</label>
@@ -568,8 +648,6 @@
           </select>
         </div>
       </div>
-
-      <!-- Repeat -->
       <label class="qa-label" style="margin-bottom:8px;">Ricorrenza</label>
       <div class="repeat-grid">
         <label class="repeat-card selected" id="rc-none">
@@ -597,24 +675,17 @@
           <span class="rc-desc">Ogni anno</span>
         </label>
       </div>
-
-      <!-- Recurring info banner -->
       <div id="qa-repeat-info" style="display:none;background:var(--primary-light);border:1px solid var(--primary);border-radius:8px;padding:0.55rem 0.8rem;font-size:0.75rem;color:var(--primary);margin-bottom:12px;font-family:var(--font-mono);">
         <span id="qa-repeat-info-text"></span>
       </div>
-
-      <!-- Optional link -->
       <div style="margin-bottom:10px;">
         <label class="qa-label" for="qa-link">Link (opzionale)</label>
         <input class="qa-field" type="url" id="qa-link" placeholder="URL cliente, Drive, brief..." />
       </div>
-
-      <!-- Notes -->
       <div style="margin-bottom:4px;">
         <label class="qa-label" for="qa-notes">Note (opzionale)</label>
         <textarea class="qa-field" id="qa-notes" placeholder="Briefing, keyword, dettagli..." style="height:56px;resize:vertical;"></textarea>
       </div>
-
       <div class="qa-actions">
         <button class="btn-secondary" type="button" onclick="closeQuickAdd()">Annulla</button>
         <button class="btn-main" type="button" onclick="saveQuickAdd()" style="margin-top:0;">💾 Salva compito</button>
@@ -651,100 +722,103 @@
         </div>
       </div>
 
-      <div class="colored-panel cat-panel" id="cat-panel">
-        <div class="colored-panel-hdr" onclick="toggleCatSection()" aria-expanded="false">
-          <span>🎨 Aree di lavoro</span>
-          <span class="panel-icon" id="cat-panel-icon">▼</span>
+      <!-- ① FORM — moved to top -->
+      <section class="creation-box" id="form-container" style="flex-shrink:0;">
+        <div class="section-title" id="form-title">Nuovo deliverable</div>
+        <input type="hidden" id="task-id" />
+        <label class="sr-only" for="task-text">Titolo</label>
+        <input class="field" type="text" id="task-text" placeholder="Cosa devi consegnare / fare?" />
+        <label class="sr-only" for="task-link">URL / Link</label>
+        <input class="field" type="url" id="task-link" placeholder="URL cliente, Drive, Notion..." />
+        <label class="sr-only" for="task-subtasks">Step</label>
+        <textarea class="field" id="task-subtasks" placeholder="Step (uno per riga)..." style="height:58px;resize:vertical;"></textarea>
+        <label class="sr-only" for="task-notes-input">Note</label>
+        <textarea class="field" id="task-notes-input" placeholder="Note, briefing cliente, keyword..." style="height:58px;resize:vertical;"></textarea>
+        <div class="image-upload-wrap" style="margin-bottom:8px;">
+          <label class="sr-only" for="task-image">Screenshot / Asset</label>
+          <input class="field" type="file" id="task-image" accept="image/*" onchange="handleImageUpload(event)" style="margin-bottom:4px;" />
+          <div id="image-preview-container" style="display:none;position:relative;margin-bottom:4px;">
+            <img id="image-preview" src="" alt="Anteprima" style="max-width:100%;max-height:180px;border-radius:8px;display:block;object-fit:cover;" />
+            <button class="trash-btn" type="button" onclick="clearImageInput()" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.6);color:white;border:none;width:22px;height:22px;">✕</button>
+          </div>
         </div>
-        <div class="colored-panel-body" id="cat-panel-body">
-          <div id="color-list"></div>
+        <div class="field-inline-row">
+          <div class="color-input-wrap">
+            <label class="sr-only" for="task-color">Colore</label>
+            <input class="task-color-input" type="color" id="task-color" value="#6c8cff" />
+          </div>
+          <button class="btn-reset-color" type="button" onclick="resetTaskColor()">Colore area</button>
         </div>
-      </div>
+        <div class="input-group">
+          <div>
+            <label class="sr-only" for="task-cat">Area</label>
+            <select class="select" id="task-cat" onchange="updateSubs(true)"></select>
+          </div>
+          <button class="btn-add-cat" type="button" onclick="openCatModal()" aria-label="Aggiungi area">+</button>
+          <button class="btn-add-cat" type="button" onclick="deleteSelectedCategory()" aria-label="Elimina area" style="background:transparent;color:var(--danger);border:1px solid var(--danger);">−</button>
+          <div>
+            <label class="sr-only" for="task-sub">Tipo</label>
+            <select class="select" id="task-sub"><option value="">Generale</option></select>
+          </div>
+        </div>
+        <div class="field-row-4">
+          <div>
+            <label class="sr-only" for="task-date">Scadenza</label>
+            <input class="field" type="date" id="task-date" onchange="syncFromTaskDateInput()" />
+          </div>
+          <div>
+            <label class="sr-only" for="task-time">Ora</label>
+            <input class="field" type="time" id="task-time" />
+          </div>
+          <div>
+            <label class="sr-only" for="task-pri">Priorità</label>
+            <select class="select" id="task-pri">
+              <option value="low">🟢 Normale</option>
+              <option value="med">🟡 Urgente</option>
+              <option value="high">🔴 Scadenza!</option>
+            </select>
+          </div>
+          <div>
+            <label class="sr-only" for="task-repeat">Frequenza</label>
+            <select class="select" id="task-repeat">
+              <option value="none">Una tantum</option>
+              <option value="weekly">Settimanale</option>
+              <option value="biweekly">Bisettimanale</option>
+              <option value="monthly">Mensile</option>
+              <option value="yearly">Annuale</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-main" id="btn-save" type="button" onclick="saveTask()">Salva deliverable</button>
+        <button class="btn-subtle" id="btn-cancel" type="button" onclick="resetForm()">Annulla modifica</button>
+        <div class="helper-note">Le card sono ordinate per priorità e area.</div>
+      </section>
 
-      <div class="colored-panel perm-panel" id="perm-panel">
-        <div class="colored-panel-hdr" onclick="togglePermSection()" aria-expanded="false">
-          <span>📌 Checklist fissa</span>
-          <span class="panel-icon" id="perm-panel-icon">▼</span>
-        </div>
-        <div class="colored-panel-body" id="perm-panel-body">
-          <div class="small muted" style="margin-bottom:8px;line-height:1.5;">Attività ricorrenti sempre visibili nell'agenda:</div>
-          <select class="select" id="perm-cat-select" onchange="renderPermTaskPicker()" style="margin-bottom:8px;"></select>
-          <div class="perm-task-picker" id="perm-task-picker"><div class="empty-state" style="padding:0.6rem;font-size:0.75rem;">Seleziona un'area</div></div>
-          <div id="perm-task-list" class="perm-tasks-scroll"></div>
-        </div>
-      </div>
-
+      <!-- ② Scrollable rest of sidebar -->
       <div class="sidebar-scroll">
-        <section class="creation-box" id="form-container">
-          <div class="section-title" id="form-title">Nuovo deliverable</div>
-          <input type="hidden" id="task-id" />
-          <label class="sr-only" for="task-text">Titolo</label>
-          <input class="field" type="text" id="task-text" placeholder="Cosa devi consegnare / fare?" />
-          <label class="sr-only" for="task-link">URL / Link</label>
-          <input class="field" type="url" id="task-link" placeholder="URL cliente, Drive, Notion..." />
-          <label class="sr-only" for="task-subtasks">Step</label>
-          <textarea class="field" id="task-subtasks" placeholder="Step (uno per riga)..." style="height:58px;resize:vertical;"></textarea>
-          <label class="sr-only" for="task-notes-input">Note</label>
-          <textarea class="field" id="task-notes-input" placeholder="Note, briefing cliente, keyword..." style="height:58px;resize:vertical;"></textarea>
-          <div class="image-upload-wrap" style="margin-bottom:8px;">
-            <label class="sr-only" for="task-image">Screenshot / Asset</label>
-            <input class="field" type="file" id="task-image" accept="image/*" onchange="handleImageUpload(event)" style="margin-bottom:4px;" />
-            <div id="image-preview-container" style="display:none;position:relative;margin-bottom:4px;">
-              <img id="image-preview" src="" alt="Anteprima" style="max-width:100%;max-height:180px;border-radius:8px;display:block;object-fit:cover;" />
-              <button class="trash-btn" type="button" onclick="clearImageInput()" style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,0.6);color:white;border:none;width:22px;height:22px;">✕</button>
-            </div>
+
+        <div class="colored-panel cat-panel" id="cat-panel">
+          <div class="colored-panel-hdr" onclick="toggleCatSection()" aria-expanded="false">
+            <span>🎨 Aree di lavoro</span>
+            <span class="panel-icon" id="cat-panel-icon">▼</span>
           </div>
-          <div class="field-inline-row">
-            <div class="color-input-wrap">
-              <label class="sr-only" for="task-color">Colore</label>
-              <input class="task-color-input" type="color" id="task-color" value="#6c8cff" />
-            </div>
-            <button class="btn-tool" type="button" onclick="resetTaskColor()">Colore area</button>
+          <div class="colored-panel-body" id="cat-panel-body">
+            <div id="color-list"></div>
           </div>
-          <div class="input-group">
-            <div>
-              <label class="sr-only" for="task-cat">Area</label>
-              <select class="select" id="task-cat" onchange="updateSubs(true)"></select>
-            </div>
-            <button class="btn-add-cat" type="button" onclick="openCatModal()" aria-label="Aggiungi area">+</button>
-            <button class="btn-add-cat" type="button" onclick="deleteSelectedCategory()" aria-label="Elimina area" style="background:transparent;color:var(--danger);border:1px solid var(--danger);">−</button>
-            <div>
-              <label class="sr-only" for="task-sub">Tipo</label>
-              <select class="select" id="task-sub"><option value="">Generale</option></select>
-            </div>
+        </div>
+
+        <div class="colored-panel perm-panel" id="perm-panel">
+          <div class="colored-panel-hdr" onclick="togglePermSection()" aria-expanded="false">
+            <span>📌 Checklist fissa</span>
+            <span class="panel-icon" id="perm-panel-icon">▼</span>
           </div>
-          <div class="field-row-4">
-            <div>
-              <label class="sr-only" for="task-date">Scadenza</label>
-              <input class="field" type="date" id="task-date" onchange="syncFromTaskDateInput()" />
-            </div>
-            <div>
-              <label class="sr-only" for="task-time">Ora</label>
-              <input class="field" type="time" id="task-time" />
-            </div>
-            <div>
-              <label class="sr-only" for="task-pri">Priorità</label>
-              <select class="select" id="task-pri">
-                <option value="low">🟢 Normale</option>
-                <option value="med">🟡 Urgente</option>
-                <option value="high">🔴 Scadenza!</option>
-              </select>
-            </div>
-            <div>
-              <label class="sr-only" for="task-repeat">Frequenza</label>
-              <select class="select" id="task-repeat">
-                <option value="none">Una tantum</option>
-                <option value="weekly">Settimanale</option>
-                <option value="biweekly">Bisettimanale</option>
-                <option value="monthly">Mensile</option>
-                <option value="yearly">Annuale</option>
-              </select>
-            </div>
+          <div class="colored-panel-body" id="perm-panel-body">
+            <div class="small muted" style="margin-bottom:8px;line-height:1.5;">Attività ricorrenti sempre visibili nell'agenda:</div>
+            <select class="select" id="perm-cat-select" onchange="renderPermTaskPicker()" style="margin-bottom:8px;"></select>
+            <div class="perm-task-picker" id="perm-task-picker"><div class="empty-state" style="padding:0.6rem;font-size:0.75rem;">Seleziona un'area</div></div>
+            <div id="perm-task-list" class="perm-tasks-scroll"></div>
           </div>
-          <button class="btn-main" id="btn-save" type="button" onclick="saveTask()">Salva deliverable</button>
-          <button class="btn-subtle" id="btn-cancel" type="button" onclick="resetForm()">Annulla modifica</button>
-          <div class="helper-note">Le card sono ordinate per priorità e area.</div>
-        </section>
+        </div>
 
         <div class="calendar-widget" id="calendar-widget">
           <div class="calendar-hdr-btn" onclick="toggleCalendar()" aria-expanded="false">
@@ -804,14 +878,12 @@
     <!-- ═══════════════ MAIN RIGHT ═══════════════ -->
     <main class="col-right" id="col-right">
 
-      <!-- HEADER: comune ad entrambe le view -->
       <div class="focus-header">
         <div>
           <h2 class="focus-title" id="main-title">Agenda di oggi</h2>
           <div id="focus-date-label" class="muted small" style="font-weight:600;"></div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:12px;">
-          <!-- TOGGLE CALENDARIO COMPITI -->
           <button class="btn-cal-view" id="btn-cal-view-toggle" onclick="toggleCalendarView()" title="Vista calendario compiti">
             <span class="cal-icon">📆</span> Calendario compiti
           </button>
@@ -861,6 +933,9 @@
         </div>
       </div>
 
+      <!-- ③ FIXED CHECKLIST BAR — bottom of right column -->
+      <div id="perm-fixed-bar" aria-label="Checklist fissa"></div>
+
     </main>
   </div>
 
@@ -897,14 +972,13 @@
       permanentTasks:[], catPanelOpen:false, permPanelOpen:false,
       archivePanelOpen:false, calendarOpen:false,
       calViewMode:false, calvMonth:"", calvSelectedDate:"",
-      calvActiveCats:[]  // empty = all active
+      calvActiveCats:[]
     };
 
     let state = structuredClone(DEFAULT_STATE);
     let currentMonth = new Date();
     let calvMonth = new Date();
 
-    // ─── UTILITIES ───
     function localDateToYmd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
     function todayStr(){ return localDateToYmd(new Date()); }
     function formatHumanDate(ds,opts={}){ try{ return new Date(ds+"T00:00:00").toLocaleDateString("it-IT",opts); }catch{ return ds; } }
@@ -928,12 +1002,10 @@
     function sanitizeColors(rc,cats){ const s=safeObject(rc),out={},used=new Set(); Object.keys(cats).forEach(cat=>{ let c=sanitizeHexColor(s[cat],""); if(!c||used.has(c))c=INITIAL_COLORS[cat]; if(!c||used.has(c))c=getNextAvailableColor(out); out[cat]=c;used.add(c); }); return out; }
     function sanitizeState(raw){ const d=safeObject(raw),cats=sanitizeCats(d.customCats),entries=safeArray(d.entries).map(sanitizeEntry); let pts=[]; if(Array.isArray(d.permanentTasks)) pts=d.permanentTasks.map(it=>{ if(typeof it==="number"||(typeof it==="string"&&!isNaN(it))){ const f=entries.find(e=>e.id===Number(it)); return f?clone(f):null; } return sanitizeEntry(it); }).filter(Boolean); return{ version:2,entries,theme:d.theme==="light"?"light":"dark", sideWidth:Number.isFinite(d.sideWidth)?Math.min(860,Math.max(380,d.sideWidth)):470, customCats:cats,catColors:sanitizeColors(d.catColors,cats), selectedFocusDate:d.selectedFocusDate?sanitizeDate(d.selectedFocusDate):todayStr(), archiveFilterDate:d.archiveFilterDate?sanitizeDate(d.archiveFilterDate):"", focusCatFilter:sanitizeString(d.focusCatFilter,"all"), permanentTasks:pts, catPanelOpen:!!d.catPanelOpen, permPanelOpen:!!d.permPanelOpen, archivePanelOpen:!!d.archivePanelOpen, calendarOpen:!!d.calendarOpen, calViewMode:!!d.calViewMode, calvMonth:d.calvMonth||"", calvSelectedDate:d.calvSelectedDate||"", calvActiveCats:safeArray(d.calvActiveCats) }; }
 
-    // ─── STORAGE ───
     function loadState(){ const s=localStorage.getItem(STORE_KEY); if(!s){state=clone(DEFAULT_STATE);state.selectedFocusDate=todayStr();return;} try{state=sanitizeState(JSON.parse(s));}catch{state=clone(DEFAULT_STATE);state.selectedFocusDate=todayStr();} }
     function persistState(){ localStorage.setItem(STORE_KEY,JSON.stringify(state)); }
     function saveAndRender(){ persistState();renderCalendar();render(); if(state.calViewMode)renderCalvGrid(); }
 
-    // ─── INIT ───
     function init(){
       loadState();
       document.body.setAttribute("data-theme",state.theme);
@@ -952,7 +1024,6 @@
       document.addEventListener("click",e=>{ const w=document.getElementById("funzioni-wrap"); if(w&&!w.contains(e.target))closeFunzioniMenu(); });
       currentMonth=new Date(state.selectedFocusDate+"T00:00:00");
       if(state.calvMonth){ calvMonth=new Date(state.calvMonth+"T00:00:00"); } else { calvMonth=new Date(); }
-      // Restore calendar view mode
       if(state.calViewMode){
         document.getElementById("agenda-view-container").style.display="none";
         document.getElementById("cal-view-container").classList.add("active");
@@ -976,7 +1047,6 @@
     }
     function isModalOpen(){ return["modal-confirm","modal-input","modal-move","modal-quick-add"].some(id=>document.getElementById(id).style.display==="flex"); }
 
-    // ─── PANELS ───
     function openPanel(id){ const p=document.getElementById(id);if(p)p.classList.add("open"); }
     function closePanel(id){ const p=document.getElementById(id);if(p)p.classList.remove("open"); }
     function isPanelOpen(id){ const p=document.getElementById(id);return p?p.classList.contains("open"):false; }
@@ -987,7 +1057,7 @@
     function closeFunzioniMenu(){ const m=document.getElementById("funzioni-menu"),b=document.getElementById("btn-funzioni");if(m)m.classList.remove("open");if(b)b.setAttribute("aria-expanded","false"); }
 
     // ═══════════════════════════════════════════
-    //  CALENDAR VIEW (GRANDE, IN COL-RIGHT)
+    //  CALENDAR VIEW
     // ═══════════════════════════════════════════
     function toggleCalendarView(){
       state.calViewMode=!state.calViewMode;
@@ -1030,7 +1100,7 @@
     function toggleCalvCat(cat){
       let ac=safeArray(state.calvActiveCats);
       const allCats=getSortedCategories();
-      if(!ac.length) ac=[...allCats]; // tutti attivi → inizia a filtrare
+      if(!ac.length) ac=[...allCats];
       const idx=ac.indexOf(cat);
       if(idx>=0){ ac.splice(idx,1); } else { ac.push(cat); }
       if(ac.length===allCats.length) ac=[];
@@ -1048,7 +1118,6 @@
       const activeCats=safeArray(state.calvActiveCats);
 
       label.textContent=calvMonth.toLocaleDateString("it-IT",{month:"long",year:"numeric"});
-
       headsEl.innerHTML=["Lun","Mar","Mer","Gio","Ven","Sab","Dom"].map(d=>`<div class="calv-day-head">${d}</div>`).join("");
 
       const firstDay=new Date(year,month,1).getDay();
@@ -1056,11 +1125,9 @@
       const lastDate=new Date(year,month+1,0).getDate();
       const prevLastDate=new Date(year,month,0).getDate();
 
-      // Build task map per date
       const taskMap={};
       state.entries.forEach(task=>{
         if(activeCats.length&&!activeCats.includes(task.cat)) return;
-        // Check each day of the month
         for(let d=1;d<=lastDate;d++){
           const ds=localDateToYmd(new Date(year,month,d));
           if(isTaskScheduledForDate(task,ds)){
@@ -1068,12 +1135,9 @@
             taskMap[ds].push(task);
           }
         }
-        // Also prev/next month days shown in grid
       });
 
       let cells="";
-
-      // Prev month padding
       for(let i=offset-1;i>=0;i--){
         const day=prevLastDate-i;
         cells+=`<div class="calv-cell other-month"><div class="calv-cell-num">${day}</div></div>`;
@@ -1086,7 +1150,6 @@
         const isSel=ds===selected;
         const classes=["calv-cell",isToday?"today":"",isSel?"selected":""].filter(Boolean).join(" ");
 
-        // Build category dots/pills
         const catGroups={};
         dayTasks.forEach(t=>{ if(!catGroups[t.cat])catGroups[t.cat]=[]; catGroups[t.cat].push(t); });
         const catKeys=Object.keys(catGroups).sort();
@@ -1111,20 +1174,17 @@
         </div>`;
       }
 
-      // Fill remaining cells
       const totalCells=Math.ceil((offset+lastDate)/7)*7;
       const remaining=totalCells-(offset+lastDate);
       for(let d=1;d<=remaining;d++){
         cells+=`<div class="calv-cell other-month"><div class="calv-cell-num">${d}</div></div>`;
       }
-
       grid.innerHTML=cells;
     }
 
     function calvSelectDay(dateStr){
       state.calvSelectedDate=dateStr;
       persistState();
-      // Highlight selected cell
       document.querySelectorAll(".calv-cell").forEach(c=>c.classList.remove("selected"));
       const cell=document.querySelector(`.calv-cell[data-date="${dateStr}"]`);
       if(cell) cell.classList.add("selected");
@@ -1146,7 +1206,6 @@
       const body      = document.getElementById("drawer-body");
       const footer    = document.getElementById("drawer-add-footer");
 
-      // Open immediately — no delay
       drawer.classList.add("open");
       colRight.classList.add("drawer-open");
 
@@ -1155,14 +1214,12 @@
       dateEl.textContent = humanDate;
       footer.style.display = "block";
 
-      // Get tasks for this date
       const activeCats = safeArray(state.calvActiveCats);
       const dayTasks   = state.entries.filter(t =>
         isTaskScheduledForDate(t, dateStr) &&
         (!activeCats.length || activeCats.includes(t.cat))
       );
 
-      // Summary bar
       const total = dayTasks.length;
       const done  = dayTasks.filter(t => isTaskCompletedForDate(t, dateStr)).length;
       const high  = dayTasks.filter(t => t.pri === "high").length;
@@ -1181,7 +1238,6 @@
         return;
       }
 
-      // Group by category
       const catGroups = {};
       dayTasks.forEach(t => { if (!catGroups[t.cat]) catGroups[t.cat] = []; catGroups[t.cat].push(t); });
 
@@ -1241,7 +1297,6 @@
         });
         html += `</div>`;
       });
-
       body.innerHTML = html;
     }
 
@@ -1253,11 +1308,9 @@
     function editFromDrawer(taskId, dateStr) {
       const t = state.entries.find(e => e.id === taskId);
       if (!t) return;
-      // Highlight item being edited
       document.querySelectorAll(".drawer-task-item").forEach(el => el.classList.remove("editing-highlight"));
       const item = document.getElementById("dti-" + taskId);
       if (item) item.classList.add("editing-highlight");
-      // Open modal pre-filled
       openQuickAdd(dateStr, t);
     }
 
@@ -1276,6 +1329,50 @@
     // ─── PERMANENTI ───
     function togglePermanentTask(taskId){ const id=Number(taskId),idx=safeArray(state.permanentTasks).findIndex(t=>t.id===id); if(idx>=0)state.permanentTasks.splice(idx,1); else{const t=state.entries.find(e=>e.id===id);if(t)state.permanentTasks.push(clone(t));} persistState();renderPermanentSection(); }
     function getPermanentTasks(){ return safeArray(state.permanentTasks).slice().sort((a,b)=>{const cd=a.cat.localeCompare(b.cat,"it");return cd!==0?cd:a.text.localeCompare(b.text,"it");}); }
+
+    // ③ RENDER FIXED CHECKLIST BAR (bottom of right column)
+    function renderPermFixed(){
+      const bar = document.getElementById("perm-fixed-bar");
+      if (!bar) return;
+      const tasks = getPermanentTasks(); // sorted by cat asc, then text asc
+      if (!tasks.length) { bar.style.display = "none"; return; }
+      bar.style.display = "block";
+      const fd = state.selectedFocusDate || todayStr();
+
+      // Group by category (already sorted alphabetically)
+      const groups = {};
+      tasks.forEach(t => { if (!groups[t.cat]) groups[t.cat] = []; groups[t.cat].push(t); });
+      const sortedCats = Object.keys(groups).sort((a,b) => a.localeCompare(b,"it"));
+
+      let chips = "";
+      sortedCats.forEach((cat, ci) => {
+        const color = state.catColors[cat] || DEFAULT_TASK_COLOR;
+        // Category divider chip
+        if (ci > 0) chips += `<span class="perm-cat-divider" style="border-color:${color};color:${color};background:${color}18;">${escapeHtml(cat)}</span>`;
+        else chips += `<span class="perm-cat-divider" style="border-color:${color};color:${color};background:${color}18;">${escapeHtml(cat)}</span>`;
+
+        groups[cat].forEach(t => {
+          const done = isTaskCompletedForDate(t, fd);
+          const priIcon = t.pri === "high" ? "🔴 " : t.pri === "med" ? "🟡 " : "";
+          chips += `<div class="perm-mini-card ${done ? "done" : ""}" style="--cat-clr:${escapeHtml(color)};" title="${escapeHtml(t.cat)}: ${escapeHtml(t.text)}${t.notes ? '\n'+t.notes : ''}">
+            <input type="checkbox" class="perm-mini-check" ${done ? "checked" : ""}
+              onclick="event.stopPropagation();toggleTaskStatus(${t.id},'${escapeJs(fd)}');renderPermFixed();"
+              aria-label="${done ? "Riapri" : "Completa"}" />
+            <span class="perm-mini-label">${priIcon}${escapeHtml(t.text)}</span>
+          </div>`;
+        });
+      });
+
+      const totalDone = tasks.filter(t => isTaskCompletedForDate(t, fd)).length;
+      bar.innerHTML = `
+        <div class="perm-fixed-bar-header">
+          📌 Checklist fissa
+          <span class="perm-fixed-count">${totalDone}/${tasks.length}</span>
+        </div>
+        <div class="perm-fixed-row">${chips}</div>
+      `;
+    }
+
     function renderPermTaskPicker(){
       const cs=document.getElementById("perm-cat-select"),pk=document.getElementById("perm-task-picker"),sc=cs?cs.value:"";
       if(!sc){pk.innerHTML=`<div style="font-size:0.73rem;color:var(--text-muted);text-align:center;padding:0.5rem;">Seleziona un'area</div>`;return;}
@@ -1285,8 +1382,9 @@
       if(!ct.length){pk.innerHTML=`<div style="font-size:0.73rem;color:var(--text-muted);text-align:center;padding:0.5rem;">Nessun deliverable in quest'area</div>`;return;}
       const permIds=new Set(safeArray(state.permanentTasks).map(t=>t.id));
       const color=state.catColors[sc]||DEFAULT_TASK_COLOR;
-      pk.innerHTML=`<div class="perm-task-grid">`+ct.map(t=>{const ia=permIds.has(t.id),io=!eIds.has(t.id);const cs2=ia?`border-color:${color};background:${color}22;color:${color};`:io?`border-color:var(--danger);background:rgba(255,92,92,0.08);color:var(--danger)`:"";;const on=io?` <small style="opacity:0.7;">(eliminato)</small>`:"";return`<span class="perm-cat-chip ${ia?"active":""}" onclick="togglePermanentTask(${t.id})" style="${cs2}"><span class="chip-dot" style="${ia?`background:${color}`:io?"background:var(--danger)":""}"></span>${escapeHtml(t.text)}${on}</span>`}).join("")+`</div>`;
+      pk.innerHTML=`<div class="perm-task-grid">`+ct.map(t=>{const ia=permIds.has(t.id),io=!eIds.has(t.id);const cs2=ia?`border-color:${color};background:${color}22;color:${color};`:io?`border-color:var(--danger);background:rgba(255,92,92,0.08);color:var(--danger)`:"";const on=io?` <small style="opacity:0.7;">(eliminato)</small>`:"";return`<span class="perm-cat-chip ${ia?"active":""}" onclick="togglePermanentTask(${t.id})" style="${cs2}"><span class="chip-dot" style="${ia?`background:${color}`:io?"background:var(--danger)":""}"></span>${escapeHtml(t.text)}${on}</span>`}).join("")+`</div>`;
     }
+
     function renderPermanentSection(){
       const cs=document.getElementById("perm-cat-select"),cats=getSortedCategories(),cv=cs.value;
       cs.innerHTML=`<option value="">-- Seleziona area --</option>`+cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
@@ -1343,21 +1441,23 @@
     function render(){
       const fd=state.selectedFocusDate||todayStr(),at=getArchiveTasks(),ft=getFocusTasks(fd);
       renderFocus(ft,fd);renderArchive(at);renderStats(ft,at,fd);syncUiValues();
+      renderPermFixed();
       if(state.permPanelOpen)renderPermanentSection();
     }
+
     function renderFocus(tasks,ds){
       const list=document.getElementById("list-focus");
       document.getElementById("focus-date-label").textContent=formatHumanDate(ds,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
       document.getElementById("focus-date-pill").textContent="Agenda: "+formatHumanDate(ds,{day:"2-digit",month:"2-digit",year:"numeric"});
       const pending=tasks.filter(t=>!isTaskCompletedForDate(t,ds)).length;
       const mb=document.getElementById("btn-move-all");if(mb)mb.style.display=pending>0?"block":"none";
-      const pt=getPermanentTasks();
-      if(!tasks.length&&!pt.length){list.innerHTML=`<div class="empty-state">Nessun deliverable per questa data</div>`;return;}
+      if(!tasks.length){list.innerHTML=`<div class="empty-state">Nessun deliverable per questa data</div>`;return;}
       let html="";
-      if(tasks.length){const grp={};tasks.forEach(t=>{if(!grp[t.cat])grp[t.cat]=[];grp[t.cat].push(t);});Object.keys(grp).sort().forEach(cat=>{const cc=state.catColors[cat]||"var(--text-muted)";html+=`<div class="focus-cat-header" style="border-color:${cc}">${escapeHtml(cat)} <span>${grp[cat].length}</span></div>`;html+=grp[cat].map(t=>createCard(t,true,ds)).join("");});}
-      if(pt.length){html+=`<div class="focus-cat-header perm-focus-header">📌 Checklist fissa <span>${pt.length}</span></div><div class="perm-focus-grid">`;html+=pt.map(t=>`<div class="perm-focus-card-wrap">${createCard(t,false,t.date,true)}</div>`).join("");html+=`</div>`;}
+      const grp={};tasks.forEach(t=>{if(!grp[t.cat])grp[t.cat]=[];grp[t.cat].push(t);});
+      Object.keys(grp).sort().forEach(cat=>{const cc=state.catColors[cat]||"var(--text-muted)";html+=`<div class="focus-cat-header" style="border-color:${cc}">${escapeHtml(cat)} <span>${grp[cat].length}</span></div>`;html+=grp[cat].map(t=>createCard(t,true,ds)).join("");});
       list.innerHTML=html;
     }
+
     function renderArchive(tasks){ const l=document.getElementById("list-archive");if(document.getElementById("archive-cat-filter").value==="all"){l.innerHTML=`<div class="empty-state">Seleziona un'area per visualizzare l'archivio</div>`;return;}if(!tasks.length){l.innerHTML=`<div class="empty-state">Nessun deliverable trovato</div>`;return;}l.innerHTML=tasks.map(t=>createCard(t,false,t.date)).join(""); }
     function renderStats(ft,at,fd){ const tot=state.entries.length,allC=state.entries.reduce((s,e)=>s+safeArray(e.completedDates).length,0),fo=ft.filter(t=>!isTaskCompletedForDate(t,fd)).length,fd2=ft.filter(t=>isTaskCompletedForDate(t,fd)).length,sc=ft.length?Math.round((fd2/ft.length)*100):0;const os=parseInt(document.getElementById("stat-score").textContent);if(sc===100&&os<100)launchConfetti();document.getElementById("count-today").textContent=String(fo);document.getElementById("count-all").textContent=String(at.length);const fc=document.getElementById("count-all-funzioni");if(fc)fc.textContent=String(at.length);document.getElementById("stat-completed").textContent=String(allC);document.getElementById("stat-total").textContent=String(tot);document.getElementById("stat-score").textContent=sc+"%";document.getElementById("stat-progress").style.width=sc+"%";document.getElementById("reset-filter-btn").style.display=state.archiveFilterDate?"block":"none"; }
     function launchConfetti(){ for(let i=0;i<45;i++){const c=document.createElement("div");c.className="confetti";c.style.left=Math.random()*100+"vw";c.style.top="-10px";c.style.backgroundColor=["#6c8cff","#34d399","#fbbf24","#ec4899","#a78bfa"][Math.floor(Math.random()*5)];document.body.appendChild(c);const a=c.animate([{transform:"translate(0,0) rotate(0deg)",opacity:1},{transform:`translate(${Math.random()*200-100}px,100vh) rotate(${Math.random()*360}deg)`,opacity:0}],{duration:2000+Math.random()*2000,easing:"cubic-bezier(0,0,0.2,1)"});a.onfinish=()=>c.remove();} }
@@ -1411,7 +1511,7 @@
     function importData(ev){ const f=ev.target.files&&ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const p=JSON.parse(String(e.target.result||"{}")),im=sanitizeState(p);state={...state,...im,selectedFocusDate:im.selectedFocusDate||state.selectedFocusDate||todayStr(),archiveFilterDate:im.archiveFilterDate||"",focusCatFilter:im.focusCatFilter||"all"};persistState();refreshCatSelects();syncTaskColorFromCategory();renderColorSettings();currentMonth=new Date((state.selectedFocusDate||todayStr())+"T00:00:00");renderCalendar();render();showToast("Dati caricati");}catch{showToast("Errore nel file",true);}finally{ev.target.value="";}};r.readAsText(f); }
     function exportCSV(){ const h=["ID","Titolo","Area","Tipo","Link","Scadenza","Ora","Priorità","Frequenza","Creato il"],rows=state.entries.map(e=>[e.id,`"${e.text.replace(/"/g,'""')}"`,`"${e.cat}"`,`"${e.sub}"`,`"${e.link}"`,e.date,e.time,e.pri,e.repeat,e.createdAt].join(","));const csv="data:text/csv;charset=utf-8,"+[h.join(","),...rows].join("\n"),lk=document.createElement("a");lk.setAttribute("href",encodeURI(csv));lk.setAttribute("download",`workflow_export_${todayStr()}.csv`);document.body.appendChild(lk);lk.click();document.body.removeChild(lk);showToast("CSV esportato"); }
 
-    // ─── MINI CALENDAR (sidebar) ───
+    // ─── MINI CALENDAR ───
     function renderCalendar(){ const gr=document.getElementById("calendar-days"),mn=document.getElementById("month-name"),sd=state.selectedFocusDate||todayStr(),td=todayStr(),yr=currentMonth.getFullYear(),mo=currentMonth.getMonth();mn.textContent=currentMonth.toLocaleDateString("it-IT",{month:"long",year:"numeric"});gr.innerHTML="";["L","M","M","G","V","S","D"].forEach(d=>{const h=document.createElement("div");h.className="calendar-day-head";h.textContent=d;gr.appendChild(h);});const fd=new Date(yr,mo,1).getDay(),off=fd===0?6:fd-1,ld=new Date(yr,mo+1,0).getDate();for(let i=0;i<off;i++)gr.appendChild(document.createElement("div"));const aDates=new Set();const fc=state.focusCatFilter||"all";for(let d=1;d<=ld;d++){const ds=localDateToYmd(new Date(yr,mo,d));if(state.entries.some(t=>isTaskScheduledForDate(t,ds)&&(fc==="all"||t.cat===fc)))aDates.add(ds);}for(let d=1;d<=ld;d++){const ds=localDateToYmd(new Date(yr,mo,d)),cell=document.createElement("button");cell.type="button";cell.className="calendar-day";cell.textContent=String(d);if(ds===td)cell.classList.add("today");if(ds===sd)cell.classList.add("active");if(aDates.has(ds))cell.classList.add("has-focus");cell.setAttribute("aria-label",`Seleziona ${formatHumanDate(ds,{day:"numeric",month:"long"})}`);cell.onclick=e=>{e.stopPropagation();setFocusDate(ds);};gr.appendChild(cell);} }
     function setFocusDate(ds){ state.selectedFocusDate=sanitizeDate(ds);document.getElementById("task-date").value=state.selectedFocusDate;currentMonth=new Date(state.selectedFocusDate+"T00:00:00");saveAndRender(); }
     function syncFromTaskDateInput(){ const v=sanitizeDate(document.getElementById("task-date").value);state.selectedFocusDate=v;currentMonth=new Date(v+"T00:00:00");saveAndRender(); }
@@ -1440,7 +1540,7 @@
     function showToast(msg,isErr=false){ const t=document.getElementById("toast");t.textContent=msg;t.style.background=isErr?"var(--danger)":"var(--success)";t.style.display="block";clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.style.display="none",2600); }
 
     let _qaDate   = "";
-    let _qaEditId = null;   // null = create, number = edit
+    let _qaEditId = null;
 
     function openQuickAdd(dateStr, existingTask = null) {
       _qaDate   = dateStr;
@@ -1453,13 +1553,11 @@
       badge.textContent = humanDate;
       qaTitle.textContent = existingTask ? "✏️ Modifica compito" : "➕ Nuovo compito";
 
-      // Populate category select
       const catSel = document.getElementById("qa-cat");
       const cats   = getSortedCategories();
       catSel.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
 
       if (existingTask) {
-        // Pre-fill from existing task
         document.getElementById("qa-text").value  = existingTask.text || "";
         document.getElementById("qa-time").value  = existingTask.time || "";
         document.getElementById("qa-pri").value   = existingTask.pri  || "low";
@@ -1469,10 +1567,8 @@
         updateQuickAddSubs();
         document.getElementById("qa-sub").value = existingTask.sub || "";
         const rep = existingTask.repeat || "none";
-        // Map biweekly → weekly for the 4-card UI (show weekly selected)
         selectRepeat(["none","weekly","monthly","yearly"].includes(rep) ? rep : "none");
       } else {
-        // Fresh form
         document.getElementById("qa-text").value  = "";
         document.getElementById("qa-time").value  = "";
         document.getElementById("qa-pri").value   = "low";
@@ -1494,7 +1590,6 @@
       modal.style.display = "none";
       modal.setAttribute("aria-hidden", "true");
       _qaEditId = null;
-      // Remove editing highlight from drawer
       document.querySelectorAll(".drawer-task-item").forEach(el => el.classList.remove("editing-highlight"));
     }
 
@@ -1552,7 +1647,6 @@
       const taskColor = state.catColors[cat] || DEFAULT_TASK_COLOR;
 
       if (_qaEditId !== null) {
-        // ── EDIT MODE ──
         const idx = state.entries.findIndex(e => e.id === _qaEditId);
         if (idx !== -1) {
           state.entries[idx] = {
@@ -1563,7 +1657,6 @@
           showToast("Compito aggiornato ✓");
         }
       } else {
-        // ── CREATE MODE ──
         state.entries.push({
           id: Date.now(), text, cat, sub, link, notes,
           taskColor, image: "",
