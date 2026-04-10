@@ -1732,5 +1732,124 @@
 
     window.onload=init;
   </script>
+  <!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║  PATCH — WorkFlow Studio: task checklist fissa ora editabili        ║
+  ║  Incolla questo blocco <script> appena prima di </body>             ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+-->
+<script>
+/**
+ * FIX: i task della checklist fissa (permanentTasks) che non sono
+ * più presenti in state.entries non potevano essere modificati perché
+ * editTask() cercava solo in entries. Stessa cosa per saveTask().
+ *
+ * Queste due funzioni sovrascrivono quelle originali.
+ */
+
+// ── FIX 1 ──────────────────────────────────────────────────────────────
+// editTask ora cerca il task anche in state.permanentTasks
+// se non lo trova in state.entries.
+// ───────────────────────────────────────────────────────────────────────
+function editTask(id) {
+  let t = state.entries.find(e => e.id === id);
+  // ← NUOVO: fallback su permanentTasks
+  if (!t) t = safeArray(state.permanentTasks).find(e => e.id === id);
+  if (!t) return;
+
+  if (!state.formPanelOpen) toggleFormSection();
+
+  document.querySelectorAll(".task-card").forEach(c => {
+    c.classList.toggle("is-editing", c.getAttribute("data-id") === String(id));
+  });
+
+  document.getElementById("task-id").value         = String(t.id);
+  document.getElementById("task-text").value        = t.text;
+  document.getElementById("task-link").value        = t.link || "";
+  document.getElementById("task-subtasks").value    = safeArray(t.subtasks).map(st => st.text).join("\n");
+  document.getElementById("task-notes-input").value = t.notes || "";
+
+  if (t.image) {
+    document.getElementById("image-preview").src = t.image;
+    document.getElementById("image-preview-container").style.display = "block";
+  } else {
+    clearImageInput();
+  }
+
+  document.getElementById("task-cat").value    = t.cat;
+  updateSubs(false);
+  document.getElementById("task-sub").value    = t.sub || "";
+  document.getElementById("task-date").value   = t.date;
+  document.getElementById("task-time").value   = t.time || "";
+  document.getElementById("task-pri").value    = t.pri;
+  document.getElementById("task-repeat").value = t.repeat;
+  document.getElementById("task-color").value  =
+    sanitizeHexColor(t.taskColor || "", state.catColors[t.cat] || DEFAULT_TASK_COLOR);
+
+  document.getElementById("btn-save").textContent   = "Aggiorna";
+  document.getElementById("btn-cancel").style.display = "block";
+  document.getElementById("form-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => document.getElementById("task-text").focus(), 150);
+}
+
+// ── FIX 2 ──────────────────────────────────────────────────────────────
+// saveTask ora gestisce il caso in cui il task sia solo in permanentTasks
+// (non in entries): lo aggiunge a entries e aggiorna il riferimento perm.
+// ───────────────────────────────────────────────────────────────────────
+function saveTask() {
+  const d   = getFormData();
+  if (!validateTask(d)) return;
+
+  const eid = sanitizeString(document.getElementById("task-id").value);
+
+  if (eid) {
+    const idx = state.entries.findIndex(x => String(x.id) === eid);
+
+    if (idx !== -1) {
+      // Task già in entries → aggiorna normalmente
+      state.entries[idx] = { ...state.entries[idx], ...d };
+    } else {
+      // ← NUOVO: task era solo in permanentTasks
+      // Lo aggiungiamo a entries con l'id originale
+      const newEntry = {
+        id:             Number(eid),
+        completedDates: [],
+        createdAt:      todayStr(),
+        ...d
+      };
+      state.entries.push(newEntry);
+
+      // Aggiorniamo anche il riferimento nella checklist fissa
+      const pi = safeArray(state.permanentTasks).findIndex(t => t.id === Number(eid));
+      if (pi !== -1) {
+        state.permanentTasks[pi] = { ...state.permanentTasks[pi], ...d };
+      }
+    }
+
+    resetForm();
+    showToast("Deliverable aggiornato");
+
+  } else {
+    // Nuovo task
+    state.entries.push({
+      id: Date.now(),
+      ...d,
+      completedDates: [],
+      createdAt: todayStr()
+    });
+    document.getElementById("task-text").value = "";
+    document.getElementById("task-link").value  = "";
+    document.getElementById("task-time").value  = "";
+    document.getElementById("task-text").focus();
+    showToast("Deliverable salvato");
+  }
+
+  saveAndRender();
+  if (state.calViewMode) {
+    renderCalvLegend();
+    renderCalvContent();
+  }
+}
+</script>
 </body>
 </html>
