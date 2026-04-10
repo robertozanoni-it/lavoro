@@ -28,7 +28,7 @@
       --font-mono: 'DM Mono', monospace;
       --drawer-w: 360px;
       --form-accent: #e879f9;
-      --fz-base: 15px;
+      --fz-base: 17px;
     }
     [data-theme="light"] {
       --bg-main: #f4f5f9;
@@ -472,13 +472,22 @@
     .perm-card-btn.edit:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary); }
     .perm-card-btn.del:hover  { background: var(--danger); color: white; border-color: var(--danger); }
 
-    /* ===== PERMANENT TASK CARDS (right sidebar) ===== */
+    /* ===== PERMANENT TASK CARDS (right sidebar) — HORIZONTAL ROW ===== */
+    .right-perm-grid {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     .right-perm-card {
       display: flex; align-items: flex-start; gap: 10px;
-      padding: 0.7rem 0.9rem; border-radius: 12px;
+      padding: 0.65rem 0.85rem; border-radius: 12px;
       background: var(--surface); border: 1px solid var(--border);
       border-left: 4px solid var(--cat-clr, var(--primary));
-      width: 100%; transition: box-shadow 0.15s, border-color 0.15s;
+      /* flex sizing: shrink to content, min ~180px, max ~280px */
+      flex: 1 1 180px; max-width: 280px;
+      transition: box-shadow 0.15s, border-color 0.15s;
       position: relative;
     }
     .right-perm-card:hover {
@@ -493,7 +502,7 @@
     }
     .right-perm-card-body { flex: 1; min-width: 0; }
     .right-perm-card-title {
-      font-size: 0.9rem; font-weight: 700; line-height: 1.35;
+      font-size: 0.85rem; font-weight: 700; line-height: 1.35;
       word-break: break-word; color: var(--text-main);
     }
     .right-perm-card-title.done-text { text-decoration: line-through; }
@@ -698,7 +707,6 @@
       color: var(--success); border-radius: 5px; padding: 0.12rem 0.5rem;
       font-family: var(--font-mono); font-size: 0.78rem;
     }
-    .right-perm-grid { display: flex; flex-direction: column; gap: 7px; }
 
     #perm-fixed-bar { display: none !important; }
 
@@ -736,6 +744,7 @@
       .scroll-area { max-height: none; }
       .focus-grid .task-card { width: 100%; min-width: 100%; }
       #right-perm-section { display: none !important; }
+      .right-perm-card { flex: 1 1 100%; max-width: 100%; }
     }
   </style>
 </head>
@@ -891,7 +900,7 @@
           <!-- FONT SIZE CONTROLS -->
           <div class="fz-controls" title="Dimensione testo">
             <button class="fz-btn" type="button" onclick="changeFontSize(-1)" aria-label="Riduci testo">A−</button>
-            <span class="fz-label" id="fz-label">15px</span>
+            <span class="fz-label" id="fz-label">17px</span>
             <button class="fz-btn" type="button" onclick="changeFontSize(+1)" aria-label="Aumenta testo">A+</button>
             <button class="fz-reset" type="button" onclick="resetFontSize()" title="Ripristina dimensione">reset</button>
           </div>
@@ -1126,7 +1135,7 @@
 
   <script>
     const STORE_KEY = "workflow_studio_v2_data";
-    const DEFAULT_FONT_SIZE = 15;
+    const DEFAULT_FONT_SIZE = 17;
     const MIN_FONT_SIZE = 12;
     const MAX_FONT_SIZE = 22;
 
@@ -1279,7 +1288,6 @@
         if(e.key==="Escape"&&!mo){resetForm();closeFunzioniMenu();closeDrawer();return;}
         if(e.altKey&&e.key.toLowerCase()==="n"&&!isIn){e.preventDefault();toggleFormSection();if(!state.formPanelOpen)toggleFormSection();document.getElementById("task-text").focus();}
         if(e.altKey&&e.key.toLowerCase()==="f"&&!isIn){e.preventDefault();document.getElementById("search-box").focus();}
-        // Alt+= to increase, Alt+- to decrease font
         if(e.altKey&&(e.key==="="||e.key==="+")&&!isIn){e.preventDefault();changeFontSize(1);}
         if(e.altKey&&e.key==="-"&&!isIn){e.preventDefault();changeFontSize(-1);}
       });
@@ -1450,7 +1458,7 @@
     function togglePermanentTask(taskId){ const id=Number(taskId),idx=safeArray(state.permanentTasks).findIndex(t=>t.id===id); if(idx>=0)state.permanentTasks.splice(idx,1); else{const t=state.entries.find(e=>e.id===id);if(t)state.permanentTasks.push(clone(t));}persistState();renderPermanentSection();renderRightSidebarPerms(); }
     function getPermanentTasks(){ return safeArray(state.permanentTasks).slice().sort((a,b)=>a.text.localeCompare(b.text,"it")); }
 
-    // ===== RIGHT SIDEBAR PERM — COLORED MINI CARDS =====
+    // ===== RIGHT SIDEBAR PERM — HORIZONTAL COLORED MINI CARDS =====
     function renderRightSidebarPerms(){
       const section=document.getElementById("right-perm-section");
       if(!section)return;
@@ -1509,7 +1517,7 @@
       pk.innerHTML=`<div class="perm-task-grid">`+ct.map(t=>{ const ia=permIds.has(t.id),io=!eIds.has(t.id); const cs2=ia?`border-color:${color};background:${color}22;color:${color};`:io?`border-color:var(--danger);background:rgba(255,92,92,0.08);color:var(--danger)`:""; const on=io?` <small style="opacity:0.7;">(eliminato)</small>`:""; return`<span class="perm-cat-chip ${ia?"active":""}" onclick="togglePermanentTask(${t.id})" style="${cs2}"><span class="chip-dot" style="${ia?`background:${color}`:io?"background:var(--danger)":""}"></span>${escapeHtml(t.text)}${on}</span>`; }).join("")+`</div>`;
     }
 
-    // ===== PERMANENT SECTION — COLORED MINI CARDS =====
+    // ===== PERMANENT SECTION — COLORED MINI CARDS (sidebar left) =====
     function renderPermanentSection(){
       const cs=document.getElementById("perm-cat-select"),cats=getSortedCategories(),cv=cs.value;
       cs.innerHTML=`<option value="">-- Seleziona area --</option>`+cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
