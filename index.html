@@ -388,6 +388,17 @@ body { overflow: auto; }
 #right-perm-section { display: none !important; }
 .right-perm-card { flex: 1 1 100%; max-width: 100%; }
 }
+/* ===== HOVER EFFECT FOR OGGI BUTTON ===== */
+.btn-tool[onclick="jumpFocusToToday()"] {
+  transition: all 0.15s ease;
+}
+.btn-tool[onclick="jumpFocusToToday()"]:hover {
+  background: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.4);
+}
 </style>
 </head>
 <body data-theme="dark">
@@ -881,7 +892,33 @@ function editTask(id){ let t=state.entries.find(e=>e.id===id); if(!t)t=safeArray
 function deleteTask(id){ if(!confirm("Eliminare questo deliverable?"))return;state.entries=state.entries.filter(e=>e.id!==id);saveAndRender();showToast("Eliminato");if(state.calViewMode){renderCalvContent();if(state.calvSelectedDate)openDrawer(state.calvSelectedDate);} }
 function moveToNextDay(id){ const t=state.entries.find(e=>e.id===id);if(!t)return;const d=new Date(t.date+"T00:00:00");d.setDate(d.getDate()+1);t.date=localDateToYmd(d);saveAndRender();showToast("Spostato al giorno successivo"); }
 function isRecurring(t){ return t.repeat&&t.repeat!=="none"; }
-function isTaskScheduledForDate(task,ds){ if(task.date===ds)return true; if(!isRecurring(task))return false; const base=new Date(task.date+"T00:00:00"),target=new Date(ds+"T00:00:00"); if(base>target)return false; if(task.repeat==="weekly")return base.getDay()===target.getDay(); if(task.repeat==="biweekly"){const diff=Math.round((target-base)/(86400000));return base.getDay()===target.getDay()&&diff%14===0;} if(task.repeat==="monthly")return base.getDate()===target.getDate(); if(task.repeat==="yearly")return base.getDate()===target.getDate()&&base.getMonth()===target.getMonth(); return false; }
+// ===== CORREZIONE: ricorrenza bisettimanale e mensile =====
+function isTaskScheduledForDate(task,ds){ 
+  if(task.date===ds) return true; 
+  if(!isRecurring(task)) return false; 
+  const base=new Date(task.date+"T00:00:00"),
+        target=new Date(ds+"T00:00:00"); 
+  if(base>target) return false; 
+  
+  if(task.repeat==="weekly") return base.getDay()===target.getDay(); 
+  
+  if(task.repeat==="biweekly"){
+    // FIX: calcolo preciso dei giorni con getTime()
+    const diffDays = Math.round((target.getTime() - base.getTime()) / 86400000);
+    return base.getDay() === target.getDay() && diffDays >= 0 && diffDays % 14 === 0;
+  } 
+  
+  if(task.repeat==="monthly"){
+    // FIX: gestione mesi con giorni diversi (es. 31 -> Febbraio)
+    const baseDay = base.getDate();
+    const targetLastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+    const expectedDay = Math.min(baseDay, targetLastDay);
+    return target.getDate() === expectedDay;
+  } 
+  
+  if(task.repeat==="yearly") return base.getDate()===target.getDate() && base.getMonth()===target.getMonth(); 
+  return false; 
+}
 function isTaskCompletedForDate(t,ds){ return safeArray(t.completedDates).includes(ds); }
 function timeRank(t){ if(!t)return-1;const[h,m]=t.split(":").map(Number);return h*60+m; }
 function getFocusTasks(ds){ const cf=state.focusCatFilter||"all",q=sanitizeString(document.getElementById("search-box").value).toLowerCase(); return state.entries.filter(e=>isTaskScheduledForDate(e,ds)&&(cf==="all"||e.cat===cf)&&(!q||[e.text,e.cat,e.sub,e.link,e.notes].join(" ").toLowerCase().includes(q))).sort(sortTasksForFocus(ds)); }
@@ -923,7 +960,46 @@ function syncFromTaskDateInput(){ const v=sanitizeDate(document.getElementById("
 function syncArchiveDateFilter(){ const v=document.getElementById("archive-date-filter").value;state.archiveFilterDate=v?sanitizeDate(v):"";saveAndRender(); }
 function applyFocusDateToArchive(){ state.archiveFilterDate=state.selectedFocusDate||todayStr();saveAndRender(); }
 function resetArchiveFilter(){ state.archiveFilterDate="";saveAndRender(); }
-function jumpFocusToToday(){ setFocusDate(todayStr()); }
+// ===== FUNZIONE jumpFocusToToday POTENZIATA =====
+function jumpFocusToToday(){ 
+  const today = todayStr();
+  
+  // Feedback visivo sul pulsante
+  const oggiBtn = document.querySelector('[onclick="jumpFocusToToday()"]');
+  if(oggiBtn){
+    const originalBg = oggiBtn.style.background;
+    const originalTransform = oggiBtn.style.transform;
+    oggiBtn.style.background = "var(--primary)";
+    oggiBtn.style.color = "white";
+    oggiBtn.style.transform = "scale(1.02)";
+    setTimeout(()=>{
+      oggiBtn.style.background = originalBg;
+      oggiBtn.style.color = "";
+      oggiBtn.style.transform = originalTransform;
+    }, 300);
+  }
+  
+  if(state.calViewMode){
+    // In vista calendario: vai al mese di oggi e apri il drawer
+    calvMonth = new Date(today + "T00:00:00");
+    state.calvMonth = today;
+    state.calvSelectedDate = today;
+    persistState();
+    renderCalvContent();
+    openDrawer(today);
+  } else {
+    // In vista agenda: imposta la data e aggiorna
+    setFocusDate(today);
+    
+    // Scroll morbido verso l'elenco task
+    setTimeout(()=>{
+      const list = document.getElementById("list-focus");
+      if(list && list.firstChild){
+        list.firstChild.scrollIntoView({behavior:"smooth", block:"start"});
+      }
+    }, 100);
+  }
+}
 function toggleCalendar(){ const c=document.getElementById("calendar-content"),ic=document.getElementById("calendar-hdr-icon"),o=c.style.display!=="none";c.style.display=o?"none":"block";if(ic)ic.style.transform=o?"rotate(0deg)":"rotate(180deg)";state.calendarOpen=!o;persistState(); }
 function prevMonth(){ currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()-1,1);renderCalendar(); }
 function nextMonth(){ currentMonth=new Date(currentMonth.getFullYear(),currentMonth.getMonth()+1,1);renderCalendar(); }
@@ -940,7 +1016,45 @@ function openQuickAdd(dateStr, existingTask = null) { _qaDate = dateStr; _qaEdit
 function closeQuickAdd(){ const modal=document.getElementById("modal-quick-add");modal.style.display="none";modal.setAttribute("aria-hidden","true");_qaEditId=null;document.querySelectorAll(".drawer-task-item").forEach(el=>el.classList.remove("editing-highlight")); }
 function updateQuickAddSubs(){ const cat=document.getElementById("qa-cat").value,dot=document.getElementById("qa-cat-dot"),subSel=document.getElementById("qa-sub"),color=state.catColors[cat]||DEFAULT_TASK_COLOR;dot.style.background=color;const subs=safeArray(state.customCats[cat]);subSel.innerHTML=`<option value="">Generale</option>`+subs.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join(""); }
 function selectRepeat(val){ ["none","weekly","monthly","yearly"].forEach(r=>{ const el=document.getElementById("rc-"+r); if(el)el.classList.toggle("selected",r===val); }); const radio=document.querySelector(`input[name="qa-repeat"][value="${val}"]`); if(radio)radio.checked=true; const info=document.getElementById("qa-repeat-info"),infoText=document.getElementById("qa-repeat-info-text"),humanDate=formatHumanDate(_qaDate,{weekday:"long",day:"numeric",month:"long"}); if(val==="none"){ info.style.display="none"; } else { const msgs={weekly:`↺ Settimanale — ogni ${formatHumanDate(_qaDate,{weekday:"long"})} a partire dal ${humanDate}`,monthly:`↺ Mensile — il giorno ${new Date(_qaDate+"T00:00:00").getDate()} di ogni mese`,yearly:`↺ Annuale — ogni anno il ${formatHumanDate(_qaDate,{day:"numeric",month:"long"})}`}; infoText.textContent=msgs[val]||""; info.style.display="block"; } }
-function saveQuickAdd(){ const text=sanitizeString(document.getElementById("qa-text").value); if(!text){ const f=document.getElementById("qa-text");f.style.borderColor="var(--danger)";f.focus();setTimeout(()=>f.style.borderColor="",1200);return; } const cat=document.getElementById("qa-cat").value||getSortedCategories()[0]||"Clienti",sub=document.getElementById("qa-sub").value,time=sanitizeTime(document.getElementById("qa-time").value),pri=sanitizePriority(document.getElementById("qa-pri").value),link=sanitizeTaskLink(document.getElementById("qa-link").value),notes=sanitizeString(document.getElementById("qa-notes").value),repeatVal=(document.querySelector('input[name="qa-repeat"]:checked')||{}).value||"none",taskColor=state.catColors[cat]||DEFAULT_TASK_COLOR; if(_qaEditId!==null){ const idx=state.entries.findIndex(e=>e.id===_qaEditId); if(idx!==-1){state.entries[idx]={...state.entries[idx],text,cat,sub,link,notes,taskColor,time,pri,repeat:sanitizeRepeat(repeatVal)};showToast("Compito aggiornato ✓");} } else { state.entries.push({id:Date.now(),text,cat,sub,link,notes,taskColor,image:"",date:_qaDate,time,pri,repeat:sanitizeRepeat(repeatVal),subtasks:[],completedDates:[],createdAt:todayStr()});const repeatMsg=repeatVal!=="none"?` (${repeatLabel(repeatVal)})`:"";showToast(`Compito aggiunto${repeatMsg} ✓`); } closeQuickAdd(); saveAndRender(); renderCalvLegend(); renderCalvContent(); state.calvSelectedDate=_qaDate; persistState(); openDrawer(_qaDate); }
+// ===== BUG FIX: saveQuickAdd ora aggiorna anche la data =====
+function saveQuickAdd(){ 
+  const text=sanitizeString(document.getElementById("qa-text").value); 
+  if(!text){ 
+    const f=document.getElementById("qa-text");
+    f.style.borderColor="var(--danger)";
+    f.focus();
+    setTimeout(()=>f.style.borderColor="",1200);
+    return; 
+  } 
+  const cat=document.getElementById("qa-cat").value||getSortedCategories()[0]||"Clienti",
+        sub=document.getElementById("qa-sub").value,
+        time=sanitizeTime(document.getElementById("qa-time").value),
+        pri=sanitizePriority(document.getElementById("qa-pri").value),
+        link=sanitizeTaskLink(document.getElementById("qa-link").value),
+        notes=sanitizeString(document.getElementById("qa-notes").value),
+        repeatVal=(document.querySelector('input[name="qa-repeat"]:checked')||{}).value||"none",
+        taskColor=state.catColors[cat]||DEFAULT_TASK_COLOR; 
+        
+  if(_qaEditId!==null){ 
+    const idx=state.entries.findIndex(e=>e.id===_qaEditId); 
+    if(idx!==-1){
+      // FIX: aggiunto date:_qaDate nell'aggiornamento
+      state.entries[idx]={...state.entries[idx],text,cat,sub,link,notes,taskColor,date:_qaDate,time,pri,repeat:sanitizeRepeat(repeatVal)};
+      showToast("Compito aggiornato ✓");
+    } 
+  } else { 
+    state.entries.push({id:Date.now(),text,cat,sub,link,notes,taskColor,image:"",date:_qaDate,time,pri,repeat:sanitizeRepeat(repeatVal),subtasks:[],completedDates:[],createdAt:todayStr()});
+    const repeatMsg=repeatVal!=="none"?` (${repeatLabel(repeatVal)})`:"";
+    showToast(`Compito aggiunto${repeatMsg} ✓`);
+  } 
+  closeQuickAdd(); 
+  saveAndRender(); 
+  renderCalvLegend(); 
+  renderCalvContent(); 
+  state.calvSelectedDate=_qaDate; 
+  persistState(); 
+  openDrawer(_qaDate); 
+}
 window.onload=init;
 </script>
 </body>
