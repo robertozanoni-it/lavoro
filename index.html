@@ -724,8 +724,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
       </details>
 
-      <input id="search" class="field search" placeholder="🔍 Cerca deliverable, cliente, keyword, checklist fissa..." oninput="render(); if(currentDrawerDate) openDrawer(currentDrawerDate)" />
-
+      <input id="search" class="field search" placeholder="🔍 Cerca task e checklist fissa..." oninput="render(); if(currentDrawerDate) 
       <details id="archive-panel" class="panel">
         <summary>🗂️ Archivio <span id="archive-count" class="pill">0</span></summary>
         <div class="panel-body">
@@ -1358,6 +1357,27 @@ function getPermSearchResults(q){
       .includes(lq)
   );
 }
+function getVisiblePermanentTasks(ds,q=""){
+  const lq=clean(q).toLowerCase();
+  const cf=state.focusCat||"all";
+  const scheduledIds=new Set(
+    state.entries
+      .filter(t=>!isRecurring(t) && t.date===ds)
+      .map(t=>t.id)
+  );
+
+  return getPermanentTasks().filter(t=>
+    !scheduledIds.has(t.id) &&
+    (cf==="all"||t.cat===cf) &&
+    (
+      !lq ||
+      [t.text,t.cat,t.sub,t.link,t.time,t.notes,"checklist fissa","fissa","permanente"]
+        .join(" ")
+        .toLowerCase()
+        .includes(lq)
+    )
+  );
+}
 function render(){
   if(periodMode){renderPeriod(periodMode);return}
   if(state.calView){renderCalendarView();return}
@@ -1380,8 +1400,9 @@ function renderFocus(tasks,ds){
 
   const list=document.getElementById("task-list");
   const q=clean(document.getElementById("search").value).toLowerCase();
-  const permResults=getPermSearchResults(q);
-  if(!tasks.length && !permResults.length){
+  const fixedTasks=getVisiblePermanentTasks(ds,q);
+
+  if(!tasks.length && !fixedTasks.length){
     list.innerHTML=`<div class="empty">Nessun deliverable per questa data</div>`;
     document.getElementById("move-all-btn").style.display="none";
     return;
@@ -1391,15 +1412,26 @@ function renderFocus(tasks,ds){
 
   const groups={};
   tasks.forEach(t=>{(groups[t.cat] ||= []).push(t)});
+
   let html="";
+
   Object.keys(groups).sort().forEach(cat=>{
     html+=`<div class="cat-header" style="border-color:${esc(state.colors[cat]||DEFAULT_COLOR)}">${esc(cat)} <span>${groups[cat].length}</span></div>`;
     html+=groups[cat].map(t=>card(t,ds,false)).join("");
   });
-  if(permResults.length && q){
-    html+=`<div class="cat-header" style="border-color:var(--success)">📌 Checklist fissa</div>`;
-    html+=permResults.map(t=>card(t,ds,true)).join("");
+
+  if(fixedTasks.length){
+    const fixedGroups={};
+    fixedTasks.forEach(t=>{(fixedGroups[t.cat] ||= []).push(t)});
+
+    html+=`<div class="cat-header" style="border-color:var(--success);margin-top:1.6rem">📌 Checklist fissa <span>${fixedTasks.length}</span></div>`;
+
+    Object.keys(fixedGroups).sort().forEach(cat=>{
+      html+=`<div class="cat-header" style="font-size:.68rem;border-color:${esc(state.colors[cat]||DEFAULT_COLOR)};opacity:.8">${esc(cat)} <span>${fixedGroups[cat].length}</span></div>`;
+      html+=fixedGroups[cat].map(t=>card(t,ds,true)).join("");
+    });
   }
+
   list.innerHTML=html;
 }
 function priorityLabel(p){return {high:"🔴 Scadenza",med:"🟡 Urgente",low:"🟢 Normale"}[p]||"🟢 Normale"}
