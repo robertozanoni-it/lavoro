@@ -850,8 +850,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
     <section id="agenda-view" class="view active">
       <div class="toolbar">
         <span id="focus-pill" class="pill">Agenda</span>
-        <select id="focus-cat" class="select" style="width:auto;flex:1;margin:0" onchange="state.focusCat=this.value;save();render()"></select>
-        <button class="btn-soft" onclick="state.focusCat='all';save();render()">Reset</button>
+        <select id="focus-cat" class="select" style="width:auto;flex:1;margin:0" onchange="state.focusCat=this.value;save();render(); if(currentDrawerDate) openDrawer(currentDrawerDate)"></select>
+        <button class="btn-soft" onclick="state.focusCat='all';save();render(); if(currentDrawerDate) openDrawer(currentDrawerDate)">Reset</button>
         <button class="btn-soft" onclick="jumpToday()">Oggi</button>
         <button id="move-all-btn" class="btn-soft" onclick="moveAllPending()">➔ Tutti a domani</button>
       </div>
@@ -1116,14 +1116,18 @@ function categories(){return Object.keys(state.cats).sort((a,b)=>a.localeCompare
 function refreshSelects(){
   const cats=categories();
   const catOptions=cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
-  const allOptions=`<option value="all">Tutte le aree</option>${catOptions}`;
+  const allOptions=`
+    <option value="all">Tutte le aree</option>
+    <option value="fixed">📌 Checklist fissa</option>
+    ${catOptions}
+  `;
 
   const taskCat=document.getElementById("task-cat");
   const prev=taskCat.value;
   taskCat.innerHTML=catOptions;
   taskCat.value=cats.includes(prev)?prev:(cats[0]||"");
 
-  document.getElementById("archive-cat").innerHTML=allOptions;
+  document.getElementById("archive-cat").innerHTML=`<option value="all">Tutte le aree</option>${catOptions}`;
   document.getElementById("archive-cat").value="all";
 
   document.getElementById("focus-cat").innerHTML=allOptions;
@@ -1235,28 +1239,64 @@ function getForm(){
 }
 function saveTask(){
   const d=getForm();
-  if(!d.text){showToast("Inserisci un titolo",true);document.getElementById("task-text").focus();return}
+  if(!d.text){
+    showToast("Inserisci un titolo",true);
+    document.getElementById("task-text").focus();
+    return;
+  }
+
   const idStr=document.getElementById("task-id").value;
+
   if(idStr){
     const id=Number(idStr);
-    const idx=state.entries.findIndex(e=>e.id===id);
-    if(idx>=0){
-      state.entries[idx]={...state.entries[idx],...d};
-      syncPermanentById(id,state.entries[idx]);
-      showToast("Deliverable aggiornato");
+    const entryIdx=state.entries.findIndex(e=>e.id===id);
+    const permIdx=state.permanent.findIndex(p=>p.id===id);
+
+    if(entryIdx>=0){
+      state.entries[entryIdx]={...state.entries[entryIdx],...d};
     }
+
+    if(permIdx>=0){
+      state.permanent[permIdx]={...state.permanent[permIdx],...d};
+    }
+
+    if(entryIdx<0 && permIdx>=0){
+      state.entries.push({
+        ...state.permanent[permIdx],
+        ...d,
+        id,
+        completedDates:completedDates(state.permanent[permIdx]),
+        createdAt:state.permanent[permIdx].createdAt||today()
+      });
+    }
+
+    showToast("Task aggiornata");
     resetForm();
+
   }else{
-    const item={id:Date.now(),...d,completedDates:[],createdAt:today()};
+    const item={
+      id:Date.now(),
+      ...d,
+      completedDates:[],
+      createdAt:today()
+    };
+
     state.entries.push(item);
+
     document.getElementById("task-text").value="";
     document.getElementById("task-link").value="";
     document.getElementById("task-time").value="";
     document.getElementById("task-text").focus();
+
     showToast("Deliverable salvato");
   }
+
   save();
   renderAll();
+
+  if(currentDrawerDate){
+    openDrawer(currentDrawerDate);
+  }
 }
 function syncPermanentById(id,source){
   const idx=state.permanent.findIndex(p=>p.id===id);
@@ -1400,6 +1440,8 @@ function getFocusTasks(ds){
   const cf=state.focusCat||"all";
   const fixedIds=new Set(state.permanent.map(p=>p.id));
 
+  if(cf==="fixed") return [];
+
   return state.entries.filter(t=>
     !fixedIds.has(t.id) &&
     !isRecurring(t) &&
@@ -1445,7 +1487,7 @@ function getPermSearchResults(q){
   const cf=state.focusCat||"all";
 
   return getPermanentTasks().filter(t=>
-    (cf==="all"||t.cat===cf) &&
+    (cf==="all"||cf==="fixed"||t.cat===cf) &&
     [t.text,t.cat,t.sub,t.link,t.time,t.notes,"checklist fissa","fissa","permanente"]
       .join(" ")
       .toLowerCase()
@@ -1457,7 +1499,7 @@ function getVisiblePermanentTasks(ds,q=""){
   const cf=state.focusCat||"all";
 
   return getPermanentTasks().filter(t=>
-    (cf==="all"||t.cat===cf) &&
+    (cf==="all"||cf==="fixed"||t.cat===cf) &&
     (
       !lq ||
       [t.text,t.cat,t.sub,t.link,t.time,t.notes,"checklist fissa","fissa","permanente"]
@@ -1510,18 +1552,18 @@ function renderFocus(tasks,ds){
   });
 
   if(fixedTasks.length){
-  html+=`
-    <div class="fixed-checklist-block">
-      <div class="fixed-checklist-head">
-        <span>📌 Checklist fissa</span>
-        <span>${fixedTasks.length}</span>
+    html+=`
+      <div class="fixed-checklist-block">
+        <div class="fixed-checklist-head">
+          <span>📌 Checklist fissa</span>
+          <span>${fixedTasks.length}</span>
+        </div>
+        <div class="fixed-checklist-row">
+          ${fixedTasks.map(t=>card(t,ds,true)).join("")}
+        </div>
       </div>
-      <div class="fixed-checklist-row">
-        ${fixedTasks.map(t=>card(t,ds,true)).join("")}
-      </div>
-    </div>
-  `;
-}
+    `;
+  }
 
   list.innerHTML=html;
 }
@@ -1534,25 +1576,29 @@ function card(t,ds,permContext=false){
   const dateLabel=isRecurring(t)
     ? (t.isWeekly?"🔄 Sett.":t.isMonthly?"📆 Mens.":"📅 Ann.")
     : human(t.date,{day:"2-digit",month:"2-digit",year:"2-digit"});
+
   const meta=[];
   if(t.time)meta.push(`<span>🕒 ${esc(t.time)}</span>`);
   if(t.sub)meta.push(`<span># ${esc(t.sub)}</span>`);
   meta.push(`<span>${priorityLabel(t.pri)}</span>`);
   if(isRecurring(t))meta.push(`<span>ancora: ${human(t.date,{day:"2-digit",month:"2-digit"})}</span>`);
+
   const subtasks=safeArray(t.subtasks).length?`<div class="subtasks">${t.subtasks.map((s,i)=>`
     <label class="subtask ${s.isComplete?"done":""}">
       <input type="checkbox" ${s.isComplete?"checked":""} onclick="event.stopPropagation();toggleSubtask(${t.id},${i})" />
       <span>${esc(s.text)}</span>
     </label>`).join("")}</div>`:"";
+
   const notes=t.notes?`<button class="note-toggle" type="button" onclick="event.stopPropagation();toggleNotes(${t.id})">Mostra note</button><div id="notes-${t.id}" class="notes">${esc(t.notes)}</div>`:"";
   const img=t.image&&t.image.startsWith("data:image")?`<div class="image"><img src="${t.image}" alt="Asset" /></div>`:"";
   const link=t.link?`<a class="task-link" href="${esc(t.link)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🔗 ${esc(t.link)}</a>`:"";
+
   const actions=permContext
-  ? `<button class="icon-btn" onclick="editTask(${t.id})" title="Modifica">✏️</button>
-     <button class="icon-btn danger" onclick="removePermanent(${t.id})" title="Rimuovi checklist">📌✕</button>`
-  : `<button class="icon-btn" onclick="moveTaskTomorrow(${t.id})" title="Domani">➔</button>
-     <button class="icon-btn" onclick="moveTaskCategory(${t.id})" title="Sposta area">📂</button>
-     <button class="icon-btn danger" onclick="deleteTask(${t.id})" title="Elimina">✕</button>`;
+    ? `<button class="icon-btn" onclick="editTask(${t.id})" title="Modifica">✏️</button>
+       <button class="icon-btn danger" onclick="removePermanent(${t.id})" title="Rimuovi checklist">📌✕</button>`
+    : `<button class="icon-btn" onclick="moveTaskTomorrow(${t.id})" title="Domani">➔</button>
+       <button class="icon-btn" onclick="moveTaskCategory(${t.id})" title="Sposta area">📂</button>
+       <button class="icon-btn danger" onclick="deleteTask(${t.id})" title="Elimina">✕</button>`;
 
   return `<div class="card ${permContext?"fixed-card":""} ${done?"done":""} ${t.pri==="high"?"high":t.pri==="med"?"med":""}" data-id="${t.id}" style="--cat-color:${esc(catColor)};--task-color:${esc(taskColor)};--task-text:${esc(txt)}">
     <input class="task-check" type="checkbox" ${done?"checked":""} onclick="event.stopPropagation();toggleDone(${t.id},'${escJs(ds)}')" />
@@ -1809,6 +1855,7 @@ function selectCalDay(ds){
 }
 function drawerTasks(ds){
   const active=safeArray(state.activeCats);
+  const focusCat=state.focusCat||"all";
   const q=clean(document.getElementById("search").value).toLowerCase();
 
   const matchSearch=t=>{
@@ -1819,23 +1866,37 @@ function drawerTasks(ds){
       .includes(q);
   };
 
+  const matchCat=t=>{
+    if(focusCat==="all") return true;
+    if(focusCat==="fixed") return true;
+    return t.cat===focusCat;
+  };
+
+  const matchCalendarLegend=t=>{
+    return !active.length || active.includes(t.cat);
+  };
+
   const fixedIds=new Set(state.permanent.map(p=>p.id));
 
-const scheduled=state.entries
-  .filter(t=>
-    !fixedIds.has(t.id) &&
-    t.date===ds &&
-    (!active.length||active.includes(t.cat)) &&
-    matchSearch(t)
-  )
-  .sort(sortTasks(ds));
+  const scheduled=focusCat==="fixed"
+    ? []
+    : state.entries
+      .filter(t=>
+        !fixedIds.has(t.id) &&
+        t.date===ds &&
+        matchCat(t) &&
+        matchCalendarLegend(t) &&
+        matchSearch(t)
+      )
+      .sort(sortTasks(ds));
 
-const fixed=getPermanentTasks()
-  .filter(t=>
-    (!active.length||active.includes(t.cat)) &&
-    matchSearch(t)
-  )
-  .sort(sortTasks(ds));
+  const fixed=getPermanentTasks()
+    .filter(t=>
+      matchCat(t) &&
+      matchCalendarLegend(t) &&
+      matchSearch(t)
+    )
+    .sort(sortTasks(ds));
 
   return {scheduled,fixed};
 }
@@ -1914,7 +1975,10 @@ function drawerTask(t,ds,isFixed=false){
     </div>
     <div class="drawer-actions">
       <button class="icon-btn" onclick="event.stopPropagation();openQuickAdd('${escJs(ds)}',${t.id})">✏️</button>
-      <button class="icon-btn danger" onclick="event.stopPropagation();deleteTask(${t.id})">✕</button>
+      ${isFixed
+  ? `<button class="icon-btn danger" onclick="event.stopPropagation();removePermanent(${t.id})">📌✕</button>`
+  : `<button class="icon-btn danger" onclick="event.stopPropagation();deleteTask(${t.id})">✕</button>`
+}
     </div>
   </div>`;
 }
@@ -1926,29 +1990,61 @@ function closeDrawer(){
 function renderPermPicker(){
   const cat=document.getElementById("perm-cat").value;
   const box=document.getElementById("perm-picker");
-  if(!cat){box.innerHTML=`<div class="muted small">Seleziona un’area</div>`;return}
-  const tasks=state.entries.filter(t=>t.cat===cat).sort((a,b)=>a.text.localeCompare(b.text,"it"));
-  if(!tasks.length){box.innerHTML=`<div class="muted small">Nessun deliverable in quest’area</div>`;return}
+
+  if(!cat){
+    box.innerHTML=`<div class="muted small">Seleziona un’area</div>`;
+    return;
+  }
+
   const ids=new Set(state.permanent.map(p=>p.id));
+
+  const merged=[
+    ...state.entries.filter(t=>t.cat===cat),
+    ...state.permanent.filter(t=>t.cat===cat)
+  ];
+
+  const seen=new Set();
+  const tasks=merged
+    .filter(t=>{
+      if(!t || seen.has(t.id)) return false;
+      seen.add(t.id);
+      return true;
+    })
+    .sort((a,b)=>a.text.localeCompare(b.text,"it"));
+
+  if(!tasks.length){
+    box.innerHTML=`<div class="muted small">Nessun deliverable in quest’area</div>`;
+    return;
+  }
+
   box.innerHTML=tasks.map(t=>`
     <button class="btn ${ids.has(t.id)?"btn-soft":""}" onclick="togglePermanent(${t.id})" style="margin:3px;padding:.35rem .55rem;font-size:.72rem">${ids.has(t.id)?"📌 ":""}${esc(t.text)}</button>
   `).join("");
 }
 function togglePermanent(id){
   const idx=state.permanent.findIndex(p=>p.id===id);
-  if(idx>=0)state.permanent.splice(idx,1);
-  else{
-    const t=state.entries.find(e=>e.id===id);
-    if(t)state.permanent.push(structuredClone(t));
+
+  if(idx>=0){
+    state.permanent.splice(idx,1);
+  }else{
+    const t=state.entries.find(e=>e.id===id) || state.permanent.find(p=>p.id===id);
+    if(t) state.permanent.push(structuredClone(t));
   }
+
   save();
   renderAll();
   showToast("Checklist aggiornata");
 }
 function removePermanent(id){
   state.permanent=state.permanent.filter(p=>p.id!==id);
+
   save();
   renderAll();
+
+  if(currentDrawerDate){
+    openDrawer(currentDrawerDate);
+  }
+
   showToast("Rimosso dalla checklist");
 }
 function renderPermList(){
@@ -2009,29 +2105,39 @@ function periodColumn(title,tasks){
 function openQuickAdd(ds,id=null){
   quickDate=validDate(ds)?ds:(state.focusDate||today());
   quickEditId=id;
-  const t=id ? state.entries.find(e=>e.id===id) : null;
+
+  const t=id
+    ? (state.entries.find(e=>e.id===id) || getPermanentTasks().find(e=>e.id===id))
+    : null;
+
   document.getElementById("quick-title").textContent=t?"✏️ Modifica compito":"➕ Nuovo compito";
   document.getElementById("quick-date-badge").textContent=human(quickDate,{weekday:"short",day:"numeric",month:"long"});
+
   const catSel=document.getElementById("quick-cat");
   catSel.innerHTML=categories().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
   if(t){
     document.getElementById("quick-text").value=t.text;
     document.getElementById("quick-time").value=t.time||"";
     document.getElementById("quick-pri").value=t.pri||"low";
     document.getElementById("quick-link").value=t.link||"";
     document.getElementById("quick-notes").value=t.notes||"";
+
     catSel.value=t.cat;
     updateQuickSubs();
     document.getElementById("quick-sub").value=t.sub||"";
+
   }else{
     document.getElementById("quick-text").value="";
     document.getElementById("quick-time").value="";
     document.getElementById("quick-pri").value="low";
     document.getElementById("quick-link").value="";
     document.getElementById("quick-notes").value="";
+
     catSel.value=document.getElementById("task-cat").value||categories()[0]||"";
     updateQuickSubs();
   }
+
   document.getElementById("quick-modal").style.display="flex";
   setTimeout(()=>document.getElementById("quick-text").focus(),50);
 }
@@ -2046,8 +2152,14 @@ function closeQuickAdd(){
 }
 function saveQuickAdd(){
   const text=clean(document.getElementById("quick-text").value);
-  if(!text){showToast("Inserisci un titolo",true);return}
+
+  if(!text){
+    showToast("Inserisci un titolo",true);
+    return;
+  }
+
   const cat=document.getElementById("quick-cat").value||categories()[0]||"Clienti";
+
   const data={
     text,
     cat,
@@ -2062,13 +2174,31 @@ function saveQuickAdd(){
     isMonthly:false,
     isYearly:false
   };
+
   if(quickEditId!==null){
-    const idx=state.entries.findIndex(e=>e.id===quickEditId);
-    if(idx>=0){
-      state.entries[idx]={...state.entries[idx],...data};
-      syncPermanentById(quickEditId,state.entries[idx]);
-      showToast("Compito aggiornato");
+    const entryIdx=state.entries.findIndex(e=>e.id===quickEditId);
+    const permIdx=state.permanent.findIndex(p=>p.id===quickEditId);
+
+    if(entryIdx>=0){
+      state.entries[entryIdx]={...state.entries[entryIdx],...data};
     }
+
+    if(permIdx>=0){
+      state.permanent[permIdx]={...state.permanent[permIdx],...data};
+    }
+
+    if(entryIdx<0 && permIdx>=0){
+      state.entries.push({
+        ...state.permanent[permIdx],
+        ...data,
+        id:quickEditId,
+        completedDates:completedDates(state.permanent[permIdx]),
+        createdAt:state.permanent[permIdx].createdAt||today()
+      });
+    }
+
+    showToast("Compito aggiornato");
+
   }else{
     state.entries.push({
       id:Date.now(),
@@ -2078,14 +2208,20 @@ function saveQuickAdd(){
       completedDates:[],
       createdAt:today()
     });
+
     showToast("Compito aggiunto");
   }
+
   state.calSelected=quickDate;
   state.calDate=quickDate;
+
   closeQuickAdd();
   save();
   renderAll();
-  if(state.calView)openDrawer(quickDate);
+
+  if(state.calView || currentDrawerDate){
+    openDrawer(quickDate);
+  }
 }
 function clearArchive(){
   if(!confirm("Eliminare i task passati e quelli completati di oggi? I ricorrenti resteranno salvati."))return;
