@@ -438,6 +438,51 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .drawer-cat{margin-bottom:1.1rem}
 .drawer-cat-label{display:inline-flex;align-items:center;gap:6px;font-size:.68rem;font-weight:900;text-transform:uppercase;border-radius:999px;padding:.3rem .6rem;margin-bottom:.5rem}
 .drawer-task{display:flex;gap:8px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.62rem .7rem;margin-bottom:6px}
+.drawer-fixed-section{
+  margin-top:1.2rem;
+  padding-top:1rem;
+  border-top:1px dashed var(--border);
+}
+
+.drawer-fixed-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  color:var(--muted);
+  font-size:.66rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  margin-bottom:.55rem;
+}
+
+.drawer-task.fixed{
+  padding:.42rem .5rem;
+  border-radius:8px;
+  margin-bottom:5px;
+  background:var(--bg);
+  opacity:.92;
+}
+
+.drawer-task.fixed input{
+  width:13px;
+  height:13px;
+  margin-top:2px;
+}
+
+.drawer-task.fixed .drawer-task-title{
+  font-size:.74rem;
+  line-height:1.25;
+}
+
+.drawer-task.fixed .drawer-meta{
+  font-size:.58rem;
+}
+
+.drawer-task.fixed .drawer-actions{
+  display:none;
+}
 .drawer-task.done{opacity:.5}
 .drawer-task input{width:15px;height:15px;margin-top:3px;accent-color:var(--primary)}
 .drawer-info{flex:1;min-width:0}
@@ -679,7 +724,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
       </details>
 
-      <input id="search" class="field search" placeholder="🔍 Cerca deliverable, cliente, keyword..." oninput="render()" />
+      <input id="search" class="field search" placeholder="🔍 Cerca deliverable, cliente, keyword, checklist fissa..." oninput="render(); if(currentDrawerDate) openDrawer(currentDrawerDate)" />
 
       <details id="archive-panel" class="panel">
         <summary>🗂️ Archivio <span id="archive-count" class="pill">0</span></summary>
@@ -1303,7 +1348,15 @@ function getPermanentTasks(){
 function getPermSearchResults(q){
   if(!q)return [];
   const lq=q.toLowerCase();
-  return getPermanentTasks().filter(t=>[t.text,t.cat,t.sub,t.notes].join(" ").toLowerCase().includes(lq));
+  const cf=state.focusCat||"all";
+
+  return getPermanentTasks().filter(t=>
+    (cf==="all"||t.cat===cf) &&
+    [t.text,t.cat,t.sub,t.link,t.time,t.notes,"checklist fissa","fissa","permanente"]
+      .join(" ")
+      .toLowerCase()
+      .includes(lq)
+  );
 }
 function render(){
   if(periodMode){renderPeriod(periodMode);return}
@@ -1625,49 +1678,100 @@ function selectCalDay(ds){
 }
 function drawerTasks(ds){
   const active=safeArray(state.activeCats);
-  const scheduled=state.entries.filter(t=>t.date===ds && (!active.length||active.includes(t.cat)));
+  const q=clean(document.getElementById("search").value).toLowerCase();
+
+  const matchSearch=t=>{
+    if(!q)return true;
+    return [t.text,t.cat,t.sub,t.link,t.time,t.notes,"checklist fissa","fissa","permanente"]
+      .join(" ")
+      .toLowerCase()
+      .includes(q);
+  };
+
+  const scheduled=state.entries
+    .filter(t=>t.date===ds && (!active.length||active.includes(t.cat)) && matchSearch(t))
+    .sort(sortTasks(ds));
+
   const ids=new Set(scheduled.map(t=>t.id));
-  const perms=getPermanentTasks().filter(t=>!ids.has(t.id)&&(!active.length||active.includes(t.cat)));
-  return [...scheduled,...perms].sort(sortTasks(ds));
+
+  const fixed=getPermanentTasks()
+    .filter(t=>!ids.has(t.id) && (!active.length||active.includes(t.cat)) && matchSearch(t))
+    .sort(sortTasks(ds));
+
+  return {scheduled,fixed};
 }
+
 function openDrawer(ds){
   currentDrawerDate=ds;
   document.getElementById("drawer").classList.add("open");
   document.getElementById("main").classList.add("drawer-open");
   document.getElementById("drawer-date").textContent=human(ds,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-  const tasks=drawerTasks(ds);
-  const done=tasks.filter(t=>isDone(t,ds)).length;
-  const high=tasks.filter(t=>t.pri==="high").length;
+
+  const data=drawerTasks(ds);
+  const scheduled=data.scheduled;
+  const fixed=data.fixed;
+  const all=[...scheduled,...fixed];
+
+  const done=all.filter(t=>isDone(t,ds)).length;
+  const high=all.filter(t=>t.pri==="high").length;
+
   document.getElementById("drawer-summary").innerHTML=`
-    <span class="drawer-stat"><strong>${tasks.length}</strong> totali</span>
+    <span class="drawer-stat"><strong>${all.length}</strong> totali</span>
     <span class="drawer-stat"><strong>${done}</strong> ✓</span>
-    <span class="drawer-stat"><strong>${tasks.length-done}</strong> aperti</span>
+    <span class="drawer-stat"><strong>${all.length-done}</strong> aperti</span>
+    ${fixed.length?`<span class="drawer-stat"><strong>📌 ${fixed.length}</strong> fissi</span>`:""}
     ${high?`<span class="drawer-stat" style="border-color:var(--danger);color:var(--danger)"><strong>🔴 ${high}</strong></span>`:""}
   `;
-  if(!tasks.length){
+
+  if(!all.length){
     document.getElementById("drawer-body").innerHTML=`<div class="empty">Nessun compito per questa data.</div>`;
     return;
   }
+
   const groups={};
-  tasks.forEach(t=>(groups[t.cat] ||= []).push(t));
-  document.getElementById("drawer-body").innerHTML=Object.keys(groups).sort().map(cat=>{
+  scheduled.forEach(t=>(groups[t.cat] ||= []).push(t));
+
+  let html=Object.keys(groups).sort().map(cat=>{
     const color=state.colors[cat]||DEFAULT_COLOR;
     return `<div class="drawer-cat">
       <div class="drawer-cat-label" style="background:${color}22;border:1px solid ${color};color:${color}">${esc(cat)} <span>${groups[cat].length}</span></div>
-      ${groups[cat].map(t=>drawerTask(t,ds)).join("")}
+      ${groups[cat].map(t=>drawerTask(t,ds,false)).join("")}
     </div>`;
   }).join("");
+
+  if(fixed.length){
+    const fixedGroups={};
+    fixed.forEach(t=>(fixedGroups[t.cat] ||= []).push(t));
+
+    html+=`<div class="drawer-fixed-section">
+      <div class="drawer-fixed-title">
+        <span>📌 Checklist fissa</span>
+        <span>${fixed.length}</span>
+      </div>
+      ${Object.keys(fixedGroups).sort().map(cat=>{
+        const color=state.colors[cat]||DEFAULT_COLOR;
+        return `<div class="drawer-cat">
+          <div class="drawer-cat-label" style="background:${color}18;border:1px solid ${color};color:${color};font-size:.58rem;padding:.22rem .5rem">${esc(cat)} <span>${fixedGroups[cat].length}</span></div>
+          ${fixedGroups[cat].map(t=>drawerTask(t,ds,true)).join("")}
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  document.getElementById("drawer-body").innerHTML=html;
 }
-function drawerTask(t,ds){
+
+function drawerTask(t,ds,isFixed=false){
   const done=isDone(t,ds);
   const pri=t.pri==="high"?"🔴":t.pri==="med"?"🟡":"🟢";
   const perm=state.permanent.some(p=>p.id===t.id);
-  return `<div class="drawer-task ${done?"done":""}">
+
+  return `<div class="drawer-task ${done?"done":""} ${isFixed?"fixed":""}">
     <input type="checkbox" ${done?"checked":""} onclick="event.stopPropagation();toggleDone(${t.id},'${escJs(ds)}')" />
     <div class="drawer-info">
-      <div class="drawer-task-title" onclick="openQuickAdd('${escJs(ds)}',${t.id})">${pri} ${esc(t.text)}</div>
+      <div class="drawer-task-title" onclick="openQuickAdd('${escJs(ds)}',${t.id})">${isFixed?"📌 ":""}${pri} ${esc(t.text)}</div>
       ${t.sub?`<div class="drawer-meta"># ${esc(t.sub)}</div>`:""}
-      <div class="drawer-meta">${t.time?`🕒 ${esc(t.time)} · `:""}${perm?"📌 · ":""}${isRecurring(t)?"ricorrente":"📅 "+human(t.date,{day:"2-digit",month:"2-digit"})}</div>
+      <div class="drawer-meta">${t.time?`🕒 ${esc(t.time)} · `:""}${perm?"checklist fissa · ":""}${isRecurring(t)?"ricorrente":"📅 "+human(t.date,{day:"2-digit",month:"2-digit"})}</div>
     </div>
     <div class="drawer-actions">
       <button class="icon-btn" onclick="event.stopPropagation();openQuickAdd('${escJs(ds)}',${t.id})">✏️</button>
