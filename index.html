@@ -481,7 +481,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 }
 
 .drawer-task.fixed .drawer-actions{
-  display:none;
+  display:flex;
 }
 .drawer-task.done{opacity:.5}
 .drawer-task input{width:15px;height:15px;margin-top:3px;accent-color:var(--primary)}
@@ -533,7 +533,99 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .preview{display:none;position:relative;margin-bottom:8px}
 .preview img{max-width:100%;max-height:180px;border-radius:10px;display:block;object-fit:cover}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;margin:-1px;padding:0;border:0;clip:rect(0,0,0,0)}
-@media(max-width:1300px){.card{width:calc(50% - 8px)}}
+.fixed-checklist-block{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:1.6rem;
+  padding:.75rem;
+  border:1px dashed var(--border);
+  background:rgba(255,255,255,.025);
+  border-radius:14px;
+}
+
+.fixed-checklist-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  color:var(--muted);
+  font-size:.72rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.fixed-checklist-row{
+  width:100%;
+  display:flex;
+  flex-wrap:nowrap;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:4px;
+}
+
+.fixed-checklist-row .card.fixed-card{
+  flex:0 0 220px;
+  width:220px;
+  min-width:220px;
+  padding:.52rem .55rem .52rem .7rem;
+  border-radius:10px;
+  box-shadow:none;
+}
+
+.card.fixed-card .task-check{
+  width:14px;
+  height:14px;
+  margin-top:3px;
+}
+
+.card.fixed-card .card-top{
+  margin-bottom:2px;
+}
+
+.card.fixed-card .badge{
+  font-size:.5rem;
+  padding:.14rem .34rem;
+}
+
+.card.fixed-card .date{
+  font-size:.52rem;
+}
+
+.card.fixed-card .task-title{
+  font-size:.76rem;
+  line-height:1.22;
+}
+
+.card.fixed-card .meta{
+  gap:3px;
+  margin-top:.25rem;
+}
+
+.card.fixed-card .meta span{
+  font-size:.5rem;
+  padding:.12rem .32rem;
+}
+
+.card.fixed-card .actions{
+  gap:4px;
+}
+
+.card.fixed-card .icon-btn{
+  width:22px;
+  height:22px;
+  border-radius:6px;
+  font-size:.68rem;
+}
+
+.card.fixed-card .task-link,
+.card.fixed-card .notes,
+.card.fixed-card .subtasks,
+.card.fixed-card .image{
+  display:none;
+}@media(max-width:1300px){.card{width:calc(50% - 8px)}}
 @media(max-width:900px){
   body{overflow:auto}
   .app{flex-direction:column;height:auto;min-height:100vh}
@@ -724,7 +816,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
         </div>
       </details>
 
-      <input id="search" class="field search" placeholder="🔍 Cerca task e checklist fissa..." oninput="render(); if(currentDrawerDate) 
+      <input id="search" class="field search" placeholder="🔍 Cerca task e checklist fissa..." oninput="render(); if(currentDrawerDate) openDrawer(currentDrawerDate)" /> 
       <details id="archive-panel" class="panel">
         <summary>🗂️ Archivio <span id="archive-count" class="pill">0</span></summary>
         <div class="panel-body">
@@ -1306,7 +1398,10 @@ function clearImage(){
 function getFocusTasks(ds){
   const q=clean(document.getElementById("search").value).toLowerCase();
   const cf=state.focusCat||"all";
+  const fixedIds=new Set(state.permanent.map(p=>p.id));
+
   return state.entries.filter(t=>
+    !fixedIds.has(t.id) &&
     !isRecurring(t) &&
     t.date===ds &&
     (cf==="all"||t.cat===cf) &&
@@ -1360,14 +1455,8 @@ function getPermSearchResults(q){
 function getVisiblePermanentTasks(ds,q=""){
   const lq=clean(q).toLowerCase();
   const cf=state.focusCat||"all";
-  const scheduledIds=new Set(
-    state.entries
-      .filter(t=>!isRecurring(t) && t.date===ds)
-      .map(t=>t.id)
-  );
 
   return getPermanentTasks().filter(t=>
-    !scheduledIds.has(t.id) &&
     (cf==="all"||t.cat===cf) &&
     (
       !lq ||
@@ -1376,7 +1465,7 @@ function getVisiblePermanentTasks(ds,q=""){
         .toLowerCase()
         .includes(lq)
     )
-  );
+  ).sort(sortTasks(ds));
 }
 function render(){
   if(periodMode){renderPeriod(periodMode);return}
@@ -1421,16 +1510,18 @@ function renderFocus(tasks,ds){
   });
 
   if(fixedTasks.length){
-    const fixedGroups={};
-    fixedTasks.forEach(t=>{(fixedGroups[t.cat] ||= []).push(t)});
-
-    html+=`<div class="cat-header" style="border-color:var(--success);margin-top:1.6rem">📌 Checklist fissa <span>${fixedTasks.length}</span></div>`;
-
-    Object.keys(fixedGroups).sort().forEach(cat=>{
-      html+=`<div class="cat-header" style="font-size:.68rem;border-color:${esc(state.colors[cat]||DEFAULT_COLOR)};opacity:.8">${esc(cat)} <span>${fixedGroups[cat].length}</span></div>`;
-      html+=fixedGroups[cat].map(t=>card(t,ds,true)).join("");
-    });
-  }
+  html+=`
+    <div class="fixed-checklist-block">
+      <div class="fixed-checklist-head">
+        <span>📌 Checklist fissa</span>
+        <span>${fixedTasks.length}</span>
+      </div>
+      <div class="fixed-checklist-row">
+        ${fixedTasks.map(t=>card(t,ds,true)).join("")}
+      </div>
+    </div>
+  `;
+}
 
   list.innerHTML=html;
 }
@@ -1457,12 +1548,13 @@ function card(t,ds,permContext=false){
   const img=t.image&&t.image.startsWith("data:image")?`<div class="image"><img src="${t.image}" alt="Asset" /></div>`:"";
   const link=t.link?`<a class="task-link" href="${esc(t.link)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">🔗 ${esc(t.link)}</a>`:"";
   const actions=permContext
-    ? `<button class="icon-btn danger" onclick="removePermanent(${t.id})" title="Rimuovi checklist">📌✕</button>`
-    : `<button class="icon-btn" onclick="moveTaskTomorrow(${t.id})" title="Domani">➔</button>
-       <button class="icon-btn" onclick="moveTaskCategory(${t.id})" title="Sposta area">📂</button>
-       <button class="icon-btn danger" onclick="deleteTask(${t.id})" title="Elimina">✕</button>`;
+  ? `<button class="icon-btn" onclick="editTask(${t.id})" title="Modifica">✏️</button>
+     <button class="icon-btn danger" onclick="removePermanent(${t.id})" title="Rimuovi checklist">📌✕</button>`
+  : `<button class="icon-btn" onclick="moveTaskTomorrow(${t.id})" title="Domani">➔</button>
+     <button class="icon-btn" onclick="moveTaskCategory(${t.id})" title="Sposta area">📂</button>
+     <button class="icon-btn danger" onclick="deleteTask(${t.id})" title="Elimina">✕</button>`;
 
-  return `<div class="card ${done?"done":""} ${t.pri==="high"?"high":t.pri==="med"?"med":""}" data-id="${t.id}" style="--cat-color:${esc(catColor)};--task-color:${esc(taskColor)};--task-text:${esc(txt)}">
+  return `<div class="card ${permContext?"fixed-card":""} ${done?"done":""} ${t.pri==="high"?"high":t.pri==="med"?"med":""}" data-id="${t.id}" style="--cat-color:${esc(catColor)};--task-color:${esc(taskColor)};--task-text:${esc(txt)}">
     <input class="task-check" type="checkbox" ${done?"checked":""} onclick="event.stopPropagation();toggleDone(${t.id},'${escJs(ds)}')" />
     <div class="card-main">
       <div class="card-top"><span class="badge">${esc(t.cat)}</span><span class="date">${dateLabel}</span></div>
@@ -1645,7 +1737,14 @@ function renderCalendarView(){
 }
 function visibleCalTasks(ds){
   const active=safeArray(state.activeCats);
-  return state.entries.filter(t=>!isRecurring(t)&&t.date===ds&&(!active.length||active.includes(t.cat)));
+  const fixedIds=new Set(state.permanent.map(p=>p.id));
+
+  return state.entries.filter(t=>
+    !fixedIds.has(t.id) &&
+    !isRecurring(t) &&
+    t.date===ds &&
+    (!active.length||active.includes(t.cat))
+  );
 }
 function renderMonthView(){
   const wrap=document.getElementById("calendar-wrap");
@@ -1720,15 +1819,23 @@ function drawerTasks(ds){
       .includes(q);
   };
 
-  const scheduled=state.entries
-    .filter(t=>t.date===ds && (!active.length||active.includes(t.cat)) && matchSearch(t))
-    .sort(sortTasks(ds));
+  const fixedIds=new Set(state.permanent.map(p=>p.id));
 
-  const ids=new Set(scheduled.map(t=>t.id));
+const scheduled=state.entries
+  .filter(t=>
+    !fixedIds.has(t.id) &&
+    t.date===ds &&
+    (!active.length||active.includes(t.cat)) &&
+    matchSearch(t)
+  )
+  .sort(sortTasks(ds));
 
-  const fixed=getPermanentTasks()
-    .filter(t=>!ids.has(t.id) && (!active.length||active.includes(t.cat)) && matchSearch(t))
-    .sort(sortTasks(ds));
+const fixed=getPermanentTasks()
+  .filter(t=>
+    (!active.length||active.includes(t.cat)) &&
+    matchSearch(t)
+  )
+  .sort(sortTasks(ds));
 
   return {scheduled,fixed};
 }
